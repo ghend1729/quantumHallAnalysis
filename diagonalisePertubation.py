@@ -3,27 +3,92 @@ import math
 import numpy
 import numpy.linalg
 import scipy
+import scipy.linalg
+import mpmath
+import itertools
+from sympy.combinatorics.permutations import Permutation
 import matplotlib
 import matplotlib.pyplot as pyplot
 from CoulombMatrixFunctions import *
+
+mpmath.mp.dps = 50
 
 matrixElementMemory = {}
 
 def NElectronMatrixElement(state1, state2, magneticLength):
     x = 0
-    for i in range(len(state1)):
-        for j in range(i+1, len(state1)):
-            if includeInPotentialEnergySum(state1, state2, i, j, len(state1)):
-                if (state1[i], state1[j], state2[i], state2[j]) in matrixElementMemory:
-                    y = matrixElementMemory[(state1[i], state1[j], state2[i], state2[j])]
-                else:
-                    y = matrixElement(magneticLength, state1[i], state1[j], state2[i], state2[j]) - matrixElement(magneticLength, state1[i], state1[j], state2[j], state2[i])
-                    matrixElementMemory[(state1[i], state1[j], state2[i], state2[j])] = y
-                x += y
+    diff = findDifferentElements(state1, state2)
+    if len(diff[0]) == 0:
+        for i in range(len(state1)):
+            for j in range(i+1, len(state1)):
+                x += twoElectronMatrixElement(state1[i], state1[j], state2[i], state2[j], magneticLength)
+    elif len(diff[0]) == 1:
+        state1Diff = diff[0][0]
+        state2Diff = diff[1][0]
+        N = len(state1)
+        newState1 = state1
+        newState2 = state2
+        del newState1[state1Diff]
+        del newState2[state2Diff]
+
+        sighn1 = (-1)**(N-1 - state1Diff)
+        sighn2 = (-1)**(N-1 - state2Diff)
+
+        x = sighn1*sighn2*sum([matrixElement(magneticLength, state2[i], state1[state1Diff], state2[i], state2[state2Diff]) - matrixElement(magneticLength, state1[state1Diff], state2[i], state2[i], state2[state2Diff]) for i in range(N)])
+    elif len(diff[0]) == 2:
+        N = len(state1)
+        i, j = diff[0][0], diff[0][1]
+        k, l = diff[1][0], diff[1][1]
+        sighn1 = (-1)**(2*N - 3 - i - j)
+        sighn2 = (-1)**(2*N - 3 - k - l)
+        x = sighn1*sighn2*(matrixElement(magneticLength,state1[i],state1[j],state2[k],state2[l]) - matrixElement(magneticLength,state1[j],state1[i],state2[k],state2[l]))
+    else:
+        x = 0
+
     return x
 
-def includeInPotentialEnergySum(state1, state2, i, j, N):
-    return all([state1[k] == state2[k] for k in range(N) if not (k==i or k==j)])
+def perm_parity(lst):
+    return Permutation(lst).signature()
+
+def permuteList(perm, listInput):
+    return [listInput[i] for i in perm]
+
+def potentialij(i, j, state1, state2, magneticLength):
+    if all([state1[k] == state2[k] for k in range(len(state1)) if not (k==i or k==j)]):
+        return matrixElement(magneticLength, state1[i], state1[j], state2[i], state2[j])
+    else:
+        return 0
+
+def longFormMatrixElement(magneticLength, state1, state2):
+    perms = itertools.permutations(range(len(state1)))
+    x = 0
+    N = len(state1)
+    for p1 in perms:
+        for p2 in perms:
+            sighn = perm_parity(p1)*perm_parity(p2)
+            for i in range(N):
+                for j in range(i+1, N):
+                    x += sighn*potentialij(i, j, permuteList(p1, state1), permuteList(p2, state2), magneticLength)
+    return x
+
+def twoElectronMatrixElement(i,j,k,l, magneticLength):
+    y = 0
+    if (i, j, k, l) in matrixElementMemory:
+        y = matrixElementMemory[(i, j, k, l)]
+    else:
+        y = matrixElement(magneticLength, i, j, k, l) - matrixElement(magneticLength, i, j, l, k)
+        matrixElementMemory[(i, j, k, l)] = y
+    return y
+
+
+def findDifferentElements(state1, state2):
+    state1Diff = [i for i in range(len(state1)) if not state1[i] in state2]
+    state2Diff = [i for i in range(len(state1)) if not state2[i] in state1]
+    print(state1[70:])
+    print(state2[70:])
+    print(state1Diff)
+    print(state2Diff)
+    return [state1Diff, state2Diff]
 
 def generatePartitions(L):
     #source: https://stackoverflow.com/questions/10035752/elegant-python-code-for-integer-partitioning
@@ -50,28 +115,31 @@ def diagonaliseLLevel(L,N, magneticLength):
     numOfStates = len(states)
 
     halfMatrix = [[NElectronMatrixElement(states[i], states[j], magneticLength) for j in range(i+1)] for i in range(numOfStates)]
-    print(halfMatrix)
+    #halfMatrix = [[longFormMatrixElement(magneticLength, states[i], states[j]) for j in range(i+1)] for i in range(numOfStates)]
     transposedHalfMatrix = [[halfMatrix[j][i] for j in range(i+1, numOfStates)] for i in range(numOfStates - 1)]
     print(transposedHalfMatrix)
     fullMatrix = [halfMatrix[i] + transposedHalfMatrix[i] for i in range(numOfStates - 1)]
     fullMatrix.append(halfMatrix[numOfStates-1])
-    print(fullMatrix)
-    pertubationMatrix = numpy.array(fullMatrix)
+    pertubationMatrix = mpmath.mp.matrix(fullMatrix)
     print(pertubationMatrix)
-    return numpy.linalg.eigvals(pertubationMatrix)/magneticLength
+    energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True)
+    return [float(mpmath.nstr(x)) for x in energies]
+
 
 def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):
     finalList = []
+    groundConfinementEnergy = alpha*N*(N-1)/2
     for L in range(LMax):
-        finalList += [[L, E + alpha*L] for E in diagonaliseLLevel(L, N, magneticLength)]
-    L = [item[0] for item in finalList]
-    E = [item[1] for item in finalList]
-
-    return L, E
+        finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in diagonaliseLLevel(L, N, magneticLength)]
+    return finalList
 
 def plotEnergies(N, LMax, magneticLength, alpha):
-    L, E = findEnergiesForRangeOfL(N, LMax, magneticLength, alpha)
+    LEList = findEnergiesForRangeOfL(N, LMax, magneticLength, alpha)
+    L = [item[0] for item in LEList]
+    E = [item[1] for item in LEList]
+    pyplot.xlabel("Delta L")
+    pyplot.ylabel("E/(e^2/epsilon0/magnetic length/(4*pi))")
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
-plotEnergies(80, 12, 1, 1/18)
+plotEnergies(80, 8, 1, 1/18)

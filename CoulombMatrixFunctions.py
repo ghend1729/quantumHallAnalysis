@@ -8,15 +8,15 @@
 import math
 import scipy
 import scipy.special
+import mpmath
 
-def nCr(n, r):
-    f = math.factorial
-    return f(n) // f(r) // f(n - r)
+mpmath.mp.dps = 50
 
 def AIntegrand(r,s,t,i):
-    f = scipy.special.gamma
-    x = (f(i+1/2)/math.factorial(r+i))*(f(1/2+r+i)/f(3/2+r+t+i))
-    return nCr(s,i)*x
+    f = mpmath.gamma
+    g = math.factorial
+    x = mpmath.binomial(s,i)*(f(i+1/2)/g(r+i))*(f(1/2+r+i)/f(3/2+r+t+i))
+    return x
 
 def BIntegrand(r,s,t,i):
     return AIntegrand(r,s,t,i)*(1/2+r+2*i)
@@ -34,10 +34,10 @@ def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
             s = m1
             r = m2 - t
             f = math.factorial
-            g = scipy.special.gamma
+            g = mpmath.gamma
 
-            x = math.sqrt((f(s+r)/f(s))*(f(t+r)/f(t)))
-            y = g(r+s+t+3/2)/(math.pi*2**(r+s+t+2))
+            x = mpmath.sqrt((f(s+r)/f(s))*(f(t+r)/f(t)))
+            y = g(r+s+t+3/2)/(mpmath.pi*mpmath.power(2, r+s+t+2))
             z = A(r,s,t)*B(r,t,s) + B(r,s,t)*A(r,t,s)
 
             return x*y*z/magneticLength
