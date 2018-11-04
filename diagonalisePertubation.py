@@ -142,4 +142,4 @@ def plotEnergies(N, LMax, magneticLength, alpha):
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
-plotEnergies(80, 8, 1, 1/18)
+plotEnergies(90, 8, 1, 1/18)
