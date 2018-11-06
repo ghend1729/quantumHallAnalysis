@@ -24,6 +24,9 @@ class symetricPowerSumPoly:
         else:
             return symetricPowerSumPoly(self.partition, self.coeficient*otherObj)
 
+    def __str__(self):
+        return str(self.coeficient) + "*" + str(self.partition)
+
 class genralSymPoly:
     def __init__(self, listOfPowerSums):
         self.powerSums = listOfPowerSums
@@ -31,7 +34,7 @@ class genralSymPoly:
     def __add__(self, otherObj):
         if type(otherObj) is symetricPowerSumPoly:
             listOfPartitions = [x.partition for x in self.powerSums]
-            listOfPowerSums = self.powerSums
+            listOfPowerSums = [x for x in self.powerSums]
             if otherObj.partition in listOfPartitions:
                 for i in range(len(listOfPowerSums)):
                     if listOfPowerSums[i].partition == otherObj.partition:
@@ -48,7 +51,7 @@ class genralSymPoly:
     def __mul__(self, otherObj):
         if type(otherObj) is genralSymPoly:
             resultPoly = genralSymPoly([])
-            for s in otherObj:
+            for s in otherObj.powerSums:
                 resultPoly = resultPoly + self*s
             return resultPoly
         else:
@@ -59,3 +62,10 @@ class genralSymPoly:
         for i in range(n-1):
             resultPoly = resultPoly*self
         return resultPoly
+
+    def __str__(self):
+        resultString = ""
+        for i in range(len(self.powerSums)-1):
+            resultString += str(self.powerSums[i]) + " + "
+        resultString += str(self.powerSums[-1])
+        return resultString
