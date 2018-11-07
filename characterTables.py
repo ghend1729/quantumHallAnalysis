@@ -103,15 +103,37 @@ def isOnBoarderHookEndPoint(p, T):
     y = not pointInRange(p2, T)
     return x or y
 
+def isOnBoarderStartPointSpecial(startp, secondp, T):
+    if startp[1] < secondp[1]:
+        p2 = [startp[0] + 1, startp[1]]
+        return not pointInRange(p2, T)
+    else:
+        p1 = [startp[0], startp[1] + 1]
+        p2 = [startp[0] + 1, startp[1]]
+        x = not pointInRange(p1, T)
+        y = not pointInRange(p2, T)
+        return x and y
+
+def isOnBoarderEndPointSpecial(endp, penultp, T):
+    if endp[1] > penultp[1]:
+        p1 = [endp[0], endp[1] + 1]
+        p2 = [endp[0] + 1, endp[1]]
+        x = not pointInRange(p1, T)
+        y = not pointInRange(p2, T)
+        return x and y
+    else:
+        p2 = [endp[0], endp[1] + 1]
+        return not pointInRange(p2, T)
+
 def isOnBoarderHook(h, T):
     l = len(h)
     if l == 1:
         return isOnBoarderSpecial(h[0], T)
     elif l == 2:
-        return isOnBoarderHookEndPoint(h[0], T) and isOnBoarderHookEndPoint(h[-1], T)
+        return isOnBoarderStartPointSpecial(h[0], h[1], T) and isOnBoarderEndPointSpecial(h[-1], h[-2], T)
     else:
         x = all([isOnBoarder(p, T) for p in h[1:-1]])
-        y = isOnBoarderHookEndPoint(h[0], T) and isOnBoarderHookEndPoint(h[-1], T)
+        y = isOnBoarderStartPointSpecial(h[0], h[1], T) and isOnBoarderEndPointSpecial(h[-1], h[-2], T)
         return x and y
 
 def hookLen(h):
@@ -138,7 +160,7 @@ def characterTab(x, y):
         characterTabMemory[(x, y)] = chi
         return chi
 
-x = (1, 2)
-y = (1,1,1)
+x = (1,1,4)
+y = (1,2,3)
 
 print(characterTab(x, y))
