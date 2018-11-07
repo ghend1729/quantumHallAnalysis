@@ -3,23 +3,31 @@
 import numpy
 import scipy
 import itertools
+import copy
+
+characterTabMemory = {}
 
 def tabTopartition(T):
     return tuple(sorted([len(r) for r in T]))
 
+def partitionToTab(partition):
+    return [[1 for j in range(partition[len(partition) - i - 1])] for i in range(len(partition))]
+
 def reduceTabeleau(T):
-    for i range(len(T)):
+    Tconpy = copy.deepcopy(T)
+    for i in range(len(Tconpy)):
         notChecked = True
-        j = len(T[i]) - 1
+        j = len(Tconpy[i]) - 1
         while notChecked:
             if j == 0:
                 notChecked = False
-            if T[i][j] == 0:
-                T[i].pop()
+            if Tconpy[i][j] == 0:
+                Tconpy[i].pop()
             else:
                 notChecked = False
             j = j - 1
-    return T
+    Tconpy = [x for x in Tconpy if not (len(x) == 0)]
+    return Tconpy
 
 def checkShape(T):
     x = all(not (0 in i) for i in T)
@@ -27,9 +35,15 @@ def checkShape(T):
     return x and y
 
 def removeHook(T, hook):
-    for x in hook:
-        T[x[0]][x[1]] = 0
-    return reduceTabeleau(T)
+    Tconpy = copy.deepcopy(T)
+    try:
+        for x in hook:
+            Tconpy[x[0]][x[1]] = 0
+        return reduceTabeleau(Tconpy)
+    except:
+        print(hook)
+        for i in T:
+            print(i)
 
 def genHook(pathsAsIndicator, startp):
     hook = [startp]
@@ -40,26 +54,91 @@ def genHook(pathsAsIndicator, startp):
         else:
             newPoint = [hook[-1][0], hook[-1][1] + 1]
         hook.append(newPoint)
+    return hook
 
 def pointInRange(point, T):
-    x = point[0] < len(T)
-    y = point[1] < len(T[point[0]])
-    return x and y
+    if 0 <= point[0] < len(T):
+        return 0 <= point[1] < len(T[point[0]])
+    else:
+        return False
 
 def validHook(hook, T):
     return all([pointInRange(p, T) for p in hook])
 
 def makeHooks(T, n):
-    pathsAsIndicators = itertools.product([True, False], repeat=n)
+    itertools.product([True, False], repeat=(n-1))
     hooks = []
     for i in range(len(T)):
         for j in range(len(T[i])):
-            tempHooks = [genHook(p, [i,j]) for p in pathsAsIndicators]
+            tempHooks = [genHook(p, [i,j]) for p in itertools.product([True, False], repeat=(n-1))]
             hooks = hooks + [x for x in tempHooks if validHook(x, T)]
     return hooks
 
 def validTabsForAllHookRemoves(T, n):
     hooks = makeHooks(T, n)
-    tabs = [[h, removeHook(T, h)] for h in hooks]
+    tabs = [[h, removeHook(T, h)] for h in hooks if isOnBoarderHook(h, T)]
     validTabs = [t for t in tabs if checkShape(t[1])]
     return validTabs
+
+def isOnBoarder(p, T):
+    p1 = [p[0], p[1] + 1]
+    p2 = [p[0] + 1, p[1]]
+    p3 = [p[0] + 1, p[1] + 1]
+    x = not pointInRange(p1, T)
+    y = not pointInRange(p2, T)
+    z = not pointInRange(p3, T)
+    return x or y or z
+
+def isOnBoarderSpecial(p, T):
+    p1 = [p[0], p[1] + 1]
+    p2 = [p[0] + 1, p[1]]
+    x = not pointInRange(p1, T)
+    y = not pointInRange(p2, T)
+    return x and y
+
+def isOnBoarderHookEndPoint(p, T):
+    p1 = [p[0], p[1] + 1]
+    p2 = [p[0] + 1, p[1]]
+    x = not pointInRange(p1, T)
+    y = not pointInRange(p2, T)
+    return x or y
+
+def isOnBoarderHook(h, T):
+    l = len(h)
+    if l == 1:
+        return isOnBoarderSpecial(h[0], T)
+    elif l == 2:
+        return isOnBoarderHookEndPoint(h[0], T) and isOnBoarderHookEndPoint(h[-1], T)
+    else:
+        x = all([isOnBoarder(p, T) for p in h[1:-1]])
+        y = isOnBoarderHookEndPoint(h[0], T) and isOnBoarderHookEndPoint(h[-1], T)
+        return x and y
+
+def hookLen(h):
+    x = max([p[0] for p in h])
+    y = min([p[0] for p in h])
+    return x - y
+
+def characterTab(x, y):
+    if (x, y) in characterTabMemory:
+        return characterTabMemory[(x, y)]
+    elif (len(x) == 0) and (len(y) == 0):
+        return 1
+    else:
+        T = partitionToTab(x)
+        y1 = y[-1]
+        newy = tuple([y[i] for i in range(len(y) - 1)])
+        hookedTabs = validTabsForAllHookRemoves(T, y1)
+        for t in hookedTabs:
+            for i in t[1]:
+                print(i)
+            print(" ")
+        print("next")
+        chi = sum([((-1)**(hookLen(i[0])))*characterTab(tabTopartition(i[1]), newy) for i in hookedTabs])
+        characterTabMemory[(x, y)] = chi
+        return chi
+
+x = (1, 2)
+y = (1,1,1)
+
+print(characterTab(x, y))
