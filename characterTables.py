@@ -151,16 +151,6 @@ def characterTab(x, y):
         y1 = y[-1]
         newy = tuple([y[i] for i in range(len(y) - 1)])
         hookedTabs = validTabsForAllHookRemoves(T, y1)
-        for t in hookedTabs:
-            for i in t[1]:
-                print(i)
-            print(" ")
-        print("next")
         chi = sum([((-1)**(hookLen(i[0])))*characterTab(tabTopartition(i[1]), newy) for i in hookedTabs])
         characterTabMemory[(x, y)] = chi
         return chi
-
-x = (1,1,4)
-y = (1,2,3)
-
-print(characterTab(x, y))
