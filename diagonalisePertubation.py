@@ -10,6 +10,7 @@ from sympy.combinatorics.permutations import Permutation
 import matplotlib
 import matplotlib.pyplot as pyplot
 from CoulombMatrixFunctions import *
+from usefulTools import generatePartitions
 
 mpmath.mp.dps = 50
 
@@ -89,15 +90,6 @@ def findDifferentElements(state1, state2):
     print(state1Diff)
     print(state2Diff)
     return [state1Diff, state2Diff]
-
-def generatePartitions(L):
-    #source: https://stackoverflow.com/questions/10035752/elegant-python-code-for-integer-partitioning
-    answer = set()
-    answer.add((L, ))
-    for x in range(1, L):
-        for y in generatePartitions(L - x):
-            answer.add(tuple(sorted((x, ) + y)))
-    return answer
 
 def generateStates(L, N):
     partitions = [item for item in generatePartitions(L) if len(item) <= N]

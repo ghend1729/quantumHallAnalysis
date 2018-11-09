@@ -2,7 +2,7 @@
 import scipy
 import numpy
 import characterTables
-from diagonalisePertubation import generatePartitions
+from usefulTools import generatePartitions
 
 class symetricPowerSumPoly:
     def __init__(self, partition, coeficient):

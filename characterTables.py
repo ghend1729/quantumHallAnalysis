@@ -26,7 +26,17 @@ def reduceTabeleau(T):
             else:
                 notChecked = False
             j = j - 1
-    Tconpy = [x for x in Tconpy if not (len(x) == 0)]
+    k = len(Tconpy)
+    reducedRows = False
+    if [] in Tconpy:
+        while not reducedRows:
+            k = k - 1
+            if k == -1:
+                reducedRows = True
+            elif len(Tconpy[k]) == 0:
+                Tconpy.pop()
+            else:
+                reducedRows = True
     return Tconpy
 
 def checkShape(T):
@@ -44,7 +54,7 @@ def removeHook(T, hook):
         print(hook)
         for i in T:
             print(i)
-
+'''
 def genHook(pathsAsIndicator, startp):
     hook = [startp]
     newPoint = [0,0]
@@ -55,6 +65,28 @@ def genHook(pathsAsIndicator, startp):
             newPoint = [hook[-1][0], hook[-1][1] + 1]
         hook.append(newPoint)
     return hook
+'''
+
+def genHook(startp, T, n):
+    hooking = True
+    hook = [startp]
+    while hooking:
+        if len(hook) == n:
+            hooking = False
+        else:
+            p1 = [hook[-1][0], hook[-1][1] + 1]
+            p2 = [hook[-1][0] - 1, hook[-1][1]]
+            if pointInRange(p1, T) and isOnBoarder(p1, T):
+                hook.append(p1)
+            elif pointInRange(p2, T) and isOnBoarder(p2, T):
+                hook.append(p2)
+            else:
+                hooking = False
+    return hook
+
+def possibleStartPoint(p, T):
+    p1 = [p[0] + 1, p[1]]
+    return not pointInRange(p1, T)
 
 def pointInRange(point, T):
     if 0 <= point[0] < len(T):
@@ -68,10 +100,13 @@ def validHook(hook, T):
 def makeHooks(T, n):
     itertools.product([True, False], repeat=(n-1))
     hooks = []
+    startPoints = []
     for i in range(len(T)):
         for j in range(len(T[i])):
-            tempHooks = [genHook(p, [i,j]) for p in itertools.product([True, False], repeat=(n-1))]
-            hooks = hooks + [x for x in tempHooks if validHook(x, T)]
+            startPoints.append([i,j])
+    startPoints = [x for x in startPoints if possibleStartPoint(x, T)]
+    hooks = [genHook(p, T, n) for p in startPoints]
+    hooks = [h for h in hooks if len(h) == n]
     return hooks
 
 def validTabsForAllHookRemoves(T, n):
@@ -129,12 +164,8 @@ def isOnBoarderHook(h, T):
     l = len(h)
     if l == 1:
         return isOnBoarderSpecial(h[0], T)
-    elif l == 2:
-        return isOnBoarderStartPointSpecial(h[0], h[1], T) and isOnBoarderEndPointSpecial(h[-1], h[-2], T)
     else:
-        x = all([isOnBoarder(p, T) for p in h[1:-1]])
-        y = isOnBoarderStartPointSpecial(h[0], h[1], T) and isOnBoarderEndPointSpecial(h[-1], h[-2], T)
-        return x and y
+        return isOnBoarderStartPointSpecial(h[0], h[1], T) and isOnBoarderEndPointSpecial(h[-1], h[-2], T)
 
 def hookLen(h):
     x = max([p[0] for p in h])
@@ -151,6 +182,17 @@ def characterTab(x, y):
         y1 = y[-1]
         newy = tuple([y[i] for i in range(len(y) - 1)])
         hookedTabs = validTabsForAllHookRemoves(T, y1)
+        for p in hookedTabs:
+            for i in p[1]:
+                print(i)
+            print(" ")
+        print("Next")
         chi = sum([((-1)**(hookLen(i[0])))*characterTab(tabTopartition(i[1]), newy) for i in hookedTabs])
         characterTabMemory[(x, y)] = chi
         return chi
+
+x = (4,)
+y = (3,1)
+x = tuple(sorted(x))
+y = tuple(sorted(y))
+print(characterTab(x,y))
