@@ -4,6 +4,9 @@ import numpy
 import scipy
 import itertools
 import copy
+import pickle
+from usefulTools import generatePartitions as partitions
+import os
 
 characterTabMemory = {}
 
@@ -182,17 +185,27 @@ def characterTab(x, y):
         y1 = y[-1]
         newy = tuple([y[i] for i in range(len(y) - 1)])
         hookedTabs = validTabsForAllHookRemoves(T, y1)
-        for p in hookedTabs:
-            for i in p[1]:
-                print(i)
-            print(" ")
-        print("Next")
         chi = sum([((-1)**(hookLen(i[0])))*characterTab(tabTopartition(i[1]), newy) for i in hookedTabs])
         characterTabMemory[(x, y)] = chi
         return chi
 
-x = (4,)
-y = (3,1)
-x = tuple(sorted(x))
-y = tuple(sorted(y))
-print(characterTab(x,y))
+testHolder = 0
+testPartitions = [partitions(i) for i in range(1,21)]
+for i in range(20):
+    for (x,y) in itertools.product(testPartitions[i], repeat=2):
+        testHolder = characterTab(x,y)
+    print("Done: " + str(i))
+    
+outfile = open("characterTableMemory.p", "wb")
+pickle.dump(characterTabMemory, outfile)
+outfile.close()
+"""
+infile = open("characterTableMemory.p", "rb")
+characterTabMemory = pickle.load(infile)
+infile.close()
+
+x = (1,1,2)
+y = (1,1,1,1)
+
+print(characterTabMemory[(x,y)])
+"""
