@@ -1,6 +1,14 @@
 #useful tools
-
+import sympy
+import sympy.combinatorics
 partitionMemory = {}
+
+def signOfPermutation(x):
+    p = sympy.combinatorics.permutations.Permutation(x)
+    if p.is_even:
+        return 0
+    else:
+        return 1
 
 def generatePartitions(L):
     if L in partitionMemory:

@@ -6,7 +6,7 @@ from usefulTools import generatePartitions
 
 class symetricPowerSumPoly:
     def __init__(self, partition, coeficient):
-        self.partition = tuple(sorted(partition))
+        self.partition = tuple(sorted([i for i in partition if not (i == 0)]))
         self.coeficient = coeficient
 
     def __add__(self, otherPoly):
