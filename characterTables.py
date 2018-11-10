@@ -10,11 +10,19 @@ import os
 
 characterTabMemory = {}
 
+infile = open("characterTableMemory.p", "rb")
+characterTabMemory = pickle.load(infile)
+infile.close()
+
+
+
 def tabTopartition(T):
-    return tuple(sorted([len(r) for r in T]))
+    Tconpy = copy.deepcopy(T)
+    return tuple(sorted(Tconpy))
 
 def partitionToTab(partition):
-    return [[1 for j in range(partition[len(partition) - i - 1])] for i in range(len(partition))]
+    p = copy.deepcopy(partition)
+    return sorted(p, reverse=True)
 
 def reduceTabeleau(T):
     Tconpy = copy.deepcopy(T)
@@ -43,16 +51,29 @@ def reduceTabeleau(T):
     return Tconpy
 
 def checkShape(T):
-    x = all(not (0 in i) for i in T)
-    y = all([len(T[i+1]) <= len(T[i]) for i in range(len(T)-1)])
+    x = all([i > 0 for i in T])
+    y = all([T[i+1] <= T[i] for i in range(len(T)-1)])
     return x and y
 
 def removeHook(T, hook):
     Tconpy = copy.deepcopy(T)
     try:
-        for x in hook:
-            Tconpy[x[0]][x[1]] = 0
-        return reduceTabeleau(Tconpy)
+        for i in range(len(T)):
+            Tconpy[i] = Tconpy[i] - sum([1 for x in hook if x[0] == i])
+        k = len(Tconpy)
+        reducedRows = False
+        if 0 in Tconpy:
+            k = len(Tconpy)
+            reducedRows = False
+            while not reducedRows:
+                k = k - 1
+                if k == -1:
+                    reducedRows = True
+                elif Tconpy[k] == 0:
+                    Tconpy.pop()
+                else:
+                    reducedRows = True
+        return Tconpy
     except:
         print(hook)
         for i in T:
@@ -93,7 +114,7 @@ def possibleStartPoint(p, T):
 
 def pointInRange(point, T):
     if 0 <= point[0] < len(T):
-        return 0 <= point[1] < len(T[point[0]])
+        return 0 <= point[1] < T[point[0]]
     else:
         return False
 
@@ -101,11 +122,10 @@ def validHook(hook, T):
     return all([pointInRange(p, T) for p in hook])
 
 def makeHooks(T, n):
-    itertools.product([True, False], repeat=(n-1))
     hooks = []
     startPoints = []
     for i in range(len(T)):
-        for j in range(len(T[i])):
+        for j in range(T[i]):
             startPoints.append([i,j])
     startPoints = [x for x in startPoints if possibleStartPoint(x, T)]
     hooks = [genHook(p, T, n) for p in startPoints]
@@ -190,22 +210,18 @@ def characterTab(x, y):
         return chi
 
 testHolder = 0
-testPartitions = [partitions(i) for i in range(1,21)]
-for i in range(20):
+testPartitions = [partitions(i) for i in range(1,28)]
+for i in range(27):
     for (x,y) in itertools.product(testPartitions[i], repeat=2):
         testHolder = characterTab(x,y)
     print("Done: " + str(i))
-    
+
 outfile = open("characterTableMemory.p", "wb")
 pickle.dump(characterTabMemory, outfile)
 outfile.close()
 """
-infile = open("characterTableMemory.p", "rb")
-characterTabMemory = pickle.load(infile)
-infile.close()
+x = (1,3,4,7)
+y = (1,2,3,4,5)
 
-x = (1,1,2)
-y = (1,1,1,1)
-
-print(characterTabMemory[(x,y)])
+print(characterTab(x,y))
 """
