@@ -12,17 +12,17 @@ import matplotlib.pyplot as pyplot
 from CoulombMatrixFunctions import *
 from usefulTools import generatePartitions
 
-mpmath.mp.dps = 50
+mpmath.mp.dps = 20
 
 NElectronMatrixElementMemory = {}
 
 matrixElementMemory = {}
 
 def NElectronMatrixElement(state1, state2, magneticLength):
-    if (state1, state2, magneticLength) in NElectronMatrixElementMemory:
-        x = NElectronMatrixElementMemory[(state1, state2, magneticLength)]
-    elif (state2, state1, magneticLength):
-        x = NElectronMatrixElementMemory[(state2, state1, magneticLength)]
+    if (tuple(state1), tuple(state2), magneticLength) in NElectronMatrixElementMemory:
+        x = NElectronMatrixElementMemory[(tuple(state1), tuple(state2), magneticLength)]
+    elif (tuple(state2), tuple(state1), magneticLength) in NElectronMatrixElementMemory:
+        x = NElectronMatrixElementMemory[(tuple(state2), tuple(state1), magneticLength)]
     else:
         x = 0
         diff = findDifferentElements(state1, state2)
@@ -52,7 +52,7 @@ def NElectronMatrixElement(state1, state2, magneticLength):
             x = sighn1*sighn2*(matrixElement(magneticLength,state1[i],state1[j],state2[k],state2[l]) - matrixElement(magneticLength,state1[j],state1[i],state2[k],state2[l]))
         else:
             x = 0
-        NElectronMatrixElementMemory[(state1, state2, magneticLength)] = x
+        NElectronMatrixElementMemory[(tuple(state1), tuple(state2), magneticLength)] = x
 
     return x
 

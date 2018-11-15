@@ -10,7 +10,7 @@ import scipy
 import scipy.special
 import mpmath
 
-mpmath.mp.dps = 50
+mpmath.mp.dps = 20
 
 def AIntegrand(r,s,t,i):
     f = mpmath.gamma

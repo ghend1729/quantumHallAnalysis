@@ -5,7 +5,7 @@ import numpy
 import diagonalisePertubationIntegerEffect
 
 def singleParticleNorm(n, magneticLength):
-    return 1/(math.sqrt(math.pi*math.factorial(n))*magneticLength**(n+1))
+    return 1/(math.sqrt(math.pi*math.factorial(n)*2**(n+1))*magneticLength**(n+1))
 
 def slaterNorm(state, magneticLength):
     n = len(state)
@@ -20,9 +20,9 @@ def convertPartitionToState(partition, n):
         baseState[n - len(partition) + i] += partition[i]
     return baseState
 
-class waveFunctionFermion(poly, n, magneticLength):
+class waveFunctionFermion:
     def __init__(self, poly, n, magneticLength):
-        schurConverted = poly.convertToShurBasis()
+        schurConverted = poly.convertToShurBasis(n)
         self.states = [[s.coeficient, convertPartitionToState(s.partition, n)] for s in schurConverted.schurs]
         self.n = n
         self.magneticLength = magneticLength
@@ -30,7 +30,7 @@ class waveFunctionFermion(poly, n, magneticLength):
 
     def normalise(self):
         for i in range(len(self.states)):
-            self.states[i][0] = self.states[i][0]/slaterNorm(self.states[i][1], magneticLength)
+            self.states[i][0] = self.states[i][0]/slaterNorm(self.states[i][1], self.magneticLength)
         normConst = math.sqrt(sum([(x[0])**2 for x in self.states]))
         for i in range(len(self.states)):
             self.states[i][0] = self.states[i][0]/normConst

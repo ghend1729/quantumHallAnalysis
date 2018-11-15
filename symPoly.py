@@ -26,9 +26,9 @@ class symetricPowerSumPoly:
         else:
             return symetricPowerSumPoly(self.partition, self.coeficient*otherObj)
 
-    def convertToShur(self):
+    def convertToShur(self, N):
         partitions = generatePartitions(sum(self.partition))
-        resultPoly = genralSymPolySchur([schurPoly(p, self.coeficient*characterTables.characterTab(p, self.partition)) for p in partitions])
+        resultPoly = genralSymPolySchur([schurPoly(p, self.coeficient*characterTables.characterTab(p, self.partition)) for p in partitions if len(p) <= N])
         return resultPoly
 
     def __str__(self):
@@ -90,10 +90,10 @@ class genralSymPoly:
             resultPoly = resultPoly*self
         return resultPoly
 
-    def convertToShurBasis(self):
+    def convertToShurBasis(self, N):
         resultPoly = genralSymPolySchur([])
         for s in self.powerSums:
-            resultPoly = resultPoly + s.convertToShur()
+            resultPoly = resultPoly + s.convertToShur(N)
         return resultPoly
 
     def __str__(self):
@@ -133,10 +133,3 @@ class genralSymPolySchur:
             resultString += str(self.schurs[i]) + " + "
         resultString += str(self.schurs[-1])
         return resultString
-
-z = symetricPowerSumPoly((1,2), 1)
-print(z.convertToShur())
-x = symetricPowerSumPoly((1,1,1), 1)
-y = z + x
-print(y.convertToShurBasis())
-print((y**2).convertToShurBasis())

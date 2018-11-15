@@ -78,18 +78,6 @@ def removeHook(T, hook):
         print(hook)
         for i in T:
             print(i)
-'''
-def genHook(pathsAsIndicator, startp):
-    hook = [startp]
-    newPoint = [0,0]
-    for i in pathsAsIndicator:
-        if i:
-            newPoint = [hook[-1][0] - 1, hook[-1][1]]
-        else:
-            newPoint = [hook[-1][0], hook[-1][1] + 1]
-        hook.append(newPoint)
-    return hook
-'''
 
 def genHook(startp, T, n):
     hooking = True
@@ -208,7 +196,7 @@ def characterTab(x, y):
         chi = sum([((-1)**(hookLen(i[0])))*characterTab(tabTopartition(i[1]), newy) for i in hookedTabs])
         characterTabMemory[(x, y)] = chi
         return chi
-
+"""
 testHolder = 0
 testPartitions = [partitions(i) for i in range(1,28)]
 for i in range(27):
@@ -219,7 +207,7 @@ for i in range(27):
 outfile = open("characterTableMemory.p", "wb")
 pickle.dump(characterTabMemory, outfile)
 outfile.close()
-"""
+
 x = (1,3,4,7)
 y = (1,2,3,4,5)
 
