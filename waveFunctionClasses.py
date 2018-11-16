@@ -3,15 +3,18 @@ import math
 import scipy
 import numpy
 import diagonalisePertubationIntegerEffect
+import copy
 
 def singleParticleNorm(n, magneticLength):
     return 1/(math.sqrt(math.pi*math.factorial(n)*2**(n+1))*magneticLength**(n+1))
 
-def slaterNorm(state, magneticLength):
+def NBodyNorm(state, magneticLength):
     n = len(state)
+    occupiedStates = set(state)
     answer = 1/math.sqrt(math.factorial(n))
-    for m in state:
-        answer = answer*singleParticleNorm(m, magneticLength)
+    for m in occupiedStates:
+        occupancyNum = state.count(n)
+        answer = answer*(1/math.sqrt(math.factorial(occupancyNum)))*((singleParticleNorm(m, magneticLength))**occupancyNum)
     return answer
 
 def convertPartitionToState(partition, n):
@@ -20,20 +23,42 @@ def convertPartitionToState(partition, n):
         baseState[n - len(partition) + i] += partition[i]
     return baseState
 
-class waveFunctionFermion:
-    def __init__(self, poly, n, magneticLength):
-        schurConverted = poly.convertToShurBasis(n)
-        self.states = [[s.coeficient, convertPartitionToState(s.partition, n)] for s in schurConverted.schurs]
-        self.n = n
+class waveFunction:
+    def __init__(self, statesDecomp, magneticLength, fermion=True, convertToNormalisedBasis=False, normalise=False):
+        self.states = copy.deepcopy(statesDecomp)
         self.magneticLength = magneticLength
-        self.normalise()
+        self.fermion = fermion
+        if convertToNormalisedBasis:
+            for i in range(len(self.states)):
+                self.states[i][0] = self.states[i][0]/NBodyNorm(self.states[i][1], self.magneticLength)
+
+    def __add__(self, otherWaveFunction):
+        answerList = []
+        for state in otherWaveFunction.states:
+            correspondingState = next((s for s in self.states if s[1] == state[1]), [0, state[1]])
+            answerList.append([correspondingState[0] + state[0], state[1]])
+        NBodyKetsInOtherWave = [s[1] for s in otherWaveFunction.states]
+        leftOverList = [s for s in self.states if not (s[1] in NBodyKetsInOtherWave)]
+        answerList = answerList + leftOverList
+        return waveFunction(answerList, self.magneticLength, fermion=self.fermion)
+
+    def __mul__(self, otherNum):
+        answerList = [[s[0]*otherNum, s[1]] for s in self.states]
+        return waveFunction(answerList, self.magneticLength, fermion=self.fermion)
+
+    def __sub__(self, otherWaveFunction):
+        return self + otherWaveFunction*(-1)
+
+    def __or__(self, otherWaveFunction):
+        answer = 0
+        for state in otherWaveFunction.states:
+            correspondingComponent = next((s[0] for s in self.states if s[1] == state[1]), 0)
+            answer += state[0]*correspondingComponent
+        return answer
 
     def normalise(self):
-        for i in range(len(self.states)):
-            self.states[i][0] = self.states[i][0]/slaterNorm(self.states[i][1], self.magneticLength)
-        normConst = math.sqrt(sum([(x[0])**2 for x in self.states]))
-        for i in range(len(self.states)):
-            self.states[i][0] = self.states[i][0]/normConst
+        sizeOfState = (self | self)
+        self = self*(1/math.sqrt(sizeOfState))
 
 def waveFuncMatrixElement(state1, state2):
     answer = 0
