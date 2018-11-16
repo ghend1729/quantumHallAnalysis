@@ -24,13 +24,15 @@ def convertPartitionToState(partition, n):
     return baseState
 
 class waveFunction:
-    def __init__(self, statesDecomp, magneticLength, fermion=True, convertToNormalisedBasis=False, normalise=False):
+    def __init__(self, statesDecomp, magneticLength, fermion=True, convertToNormalisedBasis=False, doNormalise=False):
         self.states = copy.deepcopy(statesDecomp)
         self.magneticLength = magneticLength
         self.fermion = fermion
         if convertToNormalisedBasis:
             for i in range(len(self.states)):
                 self.states[i][0] = self.states[i][0]/NBodyNorm(self.states[i][1], self.magneticLength)
+        if doNormalise:
+            self.normalise()
 
     def __add__(self, otherWaveFunction):
         answerList = []
@@ -58,7 +60,8 @@ class waveFunction:
 
     def normalise(self):
         sizeOfState = (self | self)
-        self = self*(1/math.sqrt(sizeOfState))
+        normConst = 1/(math.sqrt(sizeOfState))
+        self.states = [[s[0]*normConst, s[1]] for s in self.states]
 
 def waveFuncMatrixElement(state1, state2):
     answer = 0
@@ -66,3 +69,17 @@ def waveFuncMatrixElement(state1, state2):
         for s2 in state2.states:
             answer += diagonalisePertubationIntegerEffect.NElectronMatrixElement(s1[1], s2[1], state1.magneticLength)*s1[0]*s2[0]
     return answer
+
+
+def gramSchmidt(basis):
+    orthonormalBasis = []
+    for i in range(len(basis)):
+        newBasisElement = basis[i]
+        for j in range(i):
+            newBasisElement = newBasisElement - orthonormalBasis[j]*((orthonormalBasis[j] | basis[i])/(orthonormalBasis[j] | orthonormalBasis[j]))
+        orthonormalBasis.append(newBasisElement)
+    for i in range(len(orthonormalBasis)):
+        orthonormalBasis[i].normalise()
+    for v in orthonormalBasis:
+        print(v | v)
+    return orthonormalBasis

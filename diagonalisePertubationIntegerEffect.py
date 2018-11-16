@@ -93,10 +93,6 @@ def twoElectronMatrixElement(i,j,k,l, magneticLength):
 def findDifferentElements(state1, state2):
     state1Diff = [i for i in range(len(state1)) if not state1[i] in state2]
     state2Diff = [i for i in range(len(state1)) if not state2[i] in state1]
-    print(state1[70:])
-    print(state2[70:])
-    print(state1Diff)
-    print(state2Diff)
     return [state1Diff, state2Diff]
 
 def generateStates(L, N):

@@ -5,7 +5,7 @@ import mpmath
 import sympy
 import itertools
 import waveFunctionClasses
-import symPoly
+import DiagHamInterface
 import matplotlib
 import matplotlib.pyplot as pyplot
 from usefulTools import generatePartitions as partitions
@@ -13,46 +13,27 @@ from usefulTools import signOfPermutation
 
 mpmath.mp.dps = 20
 
-#number of particles
-N = 5
-
-#1/v
-m = 3
-
-#max change in angular momentum
-LMax = 4
-
-alpha = 0
-
-magneticLength = 1
-
-isFermion = True
-#first createB lauglin functioin squared in the symetric power sum basis
-baseWaveFunctionPoly = symPoly.genralSymPoly([])
-newPartition = []
-for p in itertools.permutations(range(N)):
-    newPartition = [p[i] + i for i in range(N)]
-    if p[0] == 0:
-        baseWaveFunctionPoly = baseWaveFunctionPoly + symPoly.symetricPowerSumPoly(newPartition, N*signOfPermutation(p))
+def genStates(L, N, m, magneticLength):
+    LaughlinState = [i*m for i in range(N)]
+    if m % 2 == 1:
+        fermion = True
     else:
-        baseWaveFunctionPoly = baseWaveFunctionPoly + symPoly.symetricPowerSumPoly(newPartition, signOfPermutation(p))
-
-if False:
-    #boson state1
-    isFermion = False
-    baseWaveFunctionPoly = baseWaveFunctionPoly**(m//2)
-else:
-    baseWaveFunctionPoly = baseWaveFunctionPoly**((m-1)//2)
-
-
-def genStates(L):
-    statePolys = [baseWaveFunctionPoly*symPoly.symetricPowerSumPoly(p, 1) for p in partitions(L)]
-    if isFermion:
-        waveFunctions = [waveFunctionClasses.waveFunctionFermion(p, N, magneticLength) for p in statePolys]
+        fermion = False
+    levelPartitions = partitions(L)
+    jackStates = []
+    for p in levelPartitions:
+        newJackState = LaughlinState[:]
+        for i in range(len(p)):
+            newJackState[N - i - 1] += p[len(p) - i - 1]
+        jackStates.append(newJackState)
+    decomposedStates = [DiagHamInterface.decomposeJackPolyState(p, fermion=fermion) for p in jackStates]
+    jackBasis = [waveFunctionClasses.waveFunction(decompJack, magneticLength, fermion=fermion, convertToNormalisedBasis=True) for decompJack in decomposedStates]
+    waveFunctions = waveFunctionClasses.gramSchmidt(jackBasis)
     return waveFunctions
 
-def diagLevelL(L):
-    states = genStates(L)
+def diagLevelL(L, N, m, magneticLength):
+    states = genStates(L, N, m, magneticLength)
+    print(states)
     numOfStates = len(states)
 
     halfMatrix = [[waveFunctionClasses.waveFuncMatrixElement(states[i], states[j]) for j in range(i+1)] for i in range(numOfStates)]
@@ -66,15 +47,15 @@ def diagLevelL(L):
     energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True)
     return [float(mpmath.nstr(x)) for x in energies]
 
-def findEnergiesForRangeOfL():
+def findEnergiesForRangeOfL(LMax, N, m, magneticLength, alpha):
     finalList = []
     groundConfinementEnergy = alpha*N*m*(N-1)/2
     for L in range(LMax):
-        finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in diagLevelL(L)]
+        finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in diagLevelL(L, N, m, magneticLength)]
     return finalList
 
-def plotEnergies():
-    LEList = findEnergiesForRangeOfL()
+def plotEnergies(N, m, magneticLength, LMax, alpha):
+    LEList = findEnergiesForRangeOfL(LMax, N, m, magneticLength, alpha)
     L = [item[0] for item in LEList]
     E = [item[1] for item in LEList]
     pyplot.xlabel("Delta L")
@@ -82,4 +63,4 @@ def plotEnergies():
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
-plotEnergies()
+plotEnergies(5, 3, 1, 5, 0)
