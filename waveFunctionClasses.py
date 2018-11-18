@@ -6,15 +6,15 @@ import diagonalisePertubationIntegerEffect
 import copy
 
 def singleParticleNorm(n, magneticLength):
-    return 1/(math.sqrt(math.pi*math.factorial(n)*2**(n+1))*magneticLength**(n+1))
+    return math.sqrt(math.pi*math.factorial(n)*2**(n+1))*magneticLength**(n+1)
 
 def NBodyNorm(state, magneticLength):
     n = len(state)
     occupiedStates = set(state)
     answer = 1/math.sqrt(math.factorial(n))
     for m in occupiedStates:
-        occupancyNum = state.count(n)
-        answer = answer*(1/math.sqrt(math.factorial(occupancyNum)))*((singleParticleNorm(m, magneticLength))**occupancyNum)
+        occupancyNum = state.count(m)
+        answer = answer*math.sqrt(math.factorial(occupancyNum))*(singleParticleNorm(m, magneticLength)**occupancyNum)
     return answer
 
 def convertPartitionToState(partition, n):
@@ -29,8 +29,9 @@ class waveFunction:
         self.magneticLength = magneticLength
         self.fermion = fermion
         if convertToNormalisedBasis:
+            print("working")
             for i in range(len(self.states)):
-                self.states[i][0] = self.states[i][0]/NBodyNorm(self.states[i][1], self.magneticLength)
+                self.states[i][0] = self.states[i][0]*NBodyNorm(self.states[i][1], self.magneticLength)
         if doNormalise:
             self.normalise()
 
@@ -58,6 +59,12 @@ class waveFunction:
             answer += state[0]*correspondingComponent
         return answer
 
+    def __str__(self):
+        return str(self.states)
+
+    def __repr__(self):
+        return str(self)
+
     def normalise(self):
         sizeOfState = (self | self)
         normConst = 1/(math.sqrt(sizeOfState))
@@ -80,6 +87,4 @@ def gramSchmidt(basis):
         orthonormalBasis.append(newBasisElement)
     for i in range(len(orthonormalBasis)):
         orthonormalBasis[i].normalise()
-    for v in orthonormalBasis:
-        print(v | v)
     return orthonormalBasis

@@ -11,7 +11,7 @@ import matplotlib.pyplot as pyplot
 from usefulTools import generatePartitions as partitions
 from usefulTools import signOfPermutation
 
-mpmath.mp.dps = 20
+mpmath.mp.dps = 10
 
 def genStates(L, N, m, magneticLength):
     LaughlinState = [i*m for i in range(N)]
@@ -33,7 +33,6 @@ def genStates(L, N, m, magneticLength):
 
 def diagLevelL(L, N, m, magneticLength):
     states = genStates(L, N, m, magneticLength)
-    print(states)
     numOfStates = len(states)
 
     halfMatrix = [[waveFunctionClasses.waveFuncMatrixElement(states[i], states[j]) for j in range(i+1)] for i in range(numOfStates)]
@@ -63,4 +62,4 @@ def plotEnergies(N, m, magneticLength, LMax, alpha):
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
-plotEnergies(5, 3, 1, 5, 0)
+plotEnergies(6, 3, 1, 5, 0)

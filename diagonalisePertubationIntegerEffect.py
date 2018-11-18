@@ -12,7 +12,7 @@ import matplotlib.pyplot as pyplot
 from CoulombMatrixFunctions import *
 from usefulTools import generatePartitions
 
-mpmath.mp.dps = 20
+mpmath.mp.dps = 10
 
 NElectronMatrixElementMemory = {}
 
