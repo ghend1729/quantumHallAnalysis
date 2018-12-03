@@ -62,4 +62,4 @@ def plotEnergies(N, m, magneticLength, LMax, alpha):
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
-plotEnergies(6, 3, 1, 5, 0)
+plotEnergies(6, 3, 1, 5, 1/24)
