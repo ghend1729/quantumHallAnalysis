@@ -10,11 +10,10 @@ from sympy.combinatorics.permutations import Permutation
 import matplotlib
 import matplotlib.pyplot as pyplot
 from CoulombMatrixFunctions import *
-from usefulTools import generatePartitions
 import potentials
 import haldanePotentials
 
-mpmath.mp.dps = 30
+mpmath.mp.dps = 15
 
 NElectronMatrixElementMemory = {}
 
@@ -105,48 +104,3 @@ def findDifferentElements(state1, state2):
     state1Diff = [i for i in range(len(state1)) if not state1[i] in state2]
     state2Diff = [i for i in range(len(state1)) if not state2[i] in state1]
     return [state1Diff, state2Diff]
-
-def generateStates(L, N):
-    partitions = [item for item in generatePartitions(L) if len(item) <= N]
-    states = []
-    for x in partitions:
-        tempState = [i for i in range(N)]
-        y = len(x)
-        for i in range(y):
-            tempState[N-1-i] = tempState[N-1-i] + x[y-1-i]
-        states.append(tempState)
-    return states
-
-def diagonaliseLLevel(L,N, magneticLength):
-    states = generateStates(L,N)
-    numOfStates = len(states)
-
-    halfMatrix = [[NElectronMatrixElement(states[i], states[j], magneticLength) for j in range(i+1)] for i in range(numOfStates)]
-    #halfMatrix = [[longFormMatrixElement(magneticLength, states[i], states[j]) for j in range(i+1)] for i in range(numOfStates)]
-    transposedHalfMatrix = [[halfMatrix[j][i] for j in range(i+1, numOfStates)] for i in range(numOfStates - 1)]
-    print(transposedHalfMatrix)
-    fullMatrix = [halfMatrix[i] + transposedHalfMatrix[i] for i in range(numOfStates - 1)]
-    fullMatrix.append(halfMatrix[numOfStates-1])
-    pertubationMatrix = mpmath.mp.matrix(fullMatrix)
-    print(pertubationMatrix)
-    energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True)
-    return [float(mpmath.nstr(x)) for x in energies]
-
-
-def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):
-    finalList = []
-    groundConfinementEnergy = alpha*N*(N-1)/2
-    for L in range(LMax):
-        finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in diagonaliseLLevel(L, N, magneticLength)]
-    return finalList
-
-def plotEnergies(N, LMax, magneticLength, alpha):
-    LEList = findEnergiesForRangeOfL(N, LMax, magneticLength, alpha)
-    L = [item[0] for item in LEList]
-    E = [item[1] for item in LEList]
-    pyplot.xlabel("Delta L")
-    pyplot.ylabel("E/(e^2/epsilon0/magnetic length/(4*pi))")
-    pyplot.plot(L, E, 'bo')
-    pyplot.show()
-
-plotEnergies(30, 8, 1, 0)

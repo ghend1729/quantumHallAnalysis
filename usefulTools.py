@@ -4,6 +4,7 @@ import mpmath
 import sympy
 import sympy.combinatorics
 partitionMemory = {}
+
 def signOfPermutation(x):
     p = sympy.combinatorics.permutations.Permutation(x)
     if p.is_even:

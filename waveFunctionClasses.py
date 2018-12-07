@@ -2,7 +2,7 @@
 import math
 import scipy
 import numpy
-import diagonalisePertubationIntegerEffect
+import NBodyBasisMatrixElementCalc
 import copy
 import mpmath
 
@@ -75,7 +75,7 @@ def waveFuncMatrixElement(state1, state2):
     answer = 0
     for s1 in state1.states:
         for s2 in state2.states:
-            answer += diagonalisePertubationIntegerEffect.NElectronMatrixElement(s1[1], s2[1], state1.magneticLength)*s1[0]*s2[0]
+            answer += NBodyBasisMatrixElementCalc.NElectronMatrixElement(s1[1], s2[1], state1.magneticLength)*s1[0]*s2[0]
     return answer
 
 
