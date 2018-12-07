@@ -11,7 +11,6 @@ import matplotlib.pyplot as pyplot
 from usefulTools import generatePartitions as partitions
 from usefulTools import signOfPermutation
 
-mpmath.mp.dps = 10
 
 def genStates(L, N, m, magneticLength):
     LaughlinState = [i*m for i in range(N)]

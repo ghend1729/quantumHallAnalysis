@@ -1,8 +1,9 @@
 #useful tools
+import math
+import mpmath
 import sympy
 import sympy.combinatorics
 partitionMemory = {}
-
 def signOfPermutation(x):
     p = sympy.combinatorics.permutations.Permutation(x)
     if p.is_even:
@@ -22,3 +23,10 @@ def generatePartitions(L):
                 answer.add(tuple(sorted((x, ) + y)))
         partitionMemory[L] = answer
     return answer
+
+def nCr(n, r):
+    f = math.factorial
+    return f(n)//f(r)//f(n-r)
+
+def norm2(n, magneticLength):
+    return math.pi*mpmath.factorial(n)*(2**(n+1))*magneticLength**(2*(n+1))

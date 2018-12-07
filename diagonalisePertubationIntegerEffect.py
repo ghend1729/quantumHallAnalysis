@@ -11,12 +11,23 @@ import matplotlib
 import matplotlib.pyplot as pyplot
 from CoulombMatrixFunctions import *
 from usefulTools import generatePartitions
+import potentials
+import haldanePotentials
 
-mpmath.mp.dps = 10
+mpmath.mp.dps = 30
 
 NElectronMatrixElementMemory = {}
 
 matrixElementMemory = {}
+
+useHaldane = True
+V = potentials.exponentailRepulsion
+
+def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
+    if useHaldane:
+        return haldanePotentials.haldaneMatrixElement(m1Prime, m2Prime, m1, m2, magneticLength, V)
+    else:
+        return matrixElementC(magneticLength, m1Prime, m2Prime, m1, m2)
 
 def NElectronMatrixElement(state1, state2, magneticLength):
     if (tuple(state1), tuple(state2), magneticLength) in NElectronMatrixElementMemory:
@@ -138,4 +149,4 @@ def plotEnergies(N, LMax, magneticLength, alpha):
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
-#plotEnergies(90, 8, 1, 1/18)
+plotEnergies(30, 8, 1, 0)

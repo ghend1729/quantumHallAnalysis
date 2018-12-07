@@ -4,6 +4,7 @@ import scipy
 import numpy
 import diagonalisePertubationIntegerEffect
 import copy
+import mpmath
 
 def singleParticleNorm(n, magneticLength):
     return math.sqrt(math.pi*math.factorial(n)*2**(n+1))*magneticLength**(n+1)
