@@ -55,10 +55,10 @@ def findEnergiesForRangeOfL(LMax, N, m, magneticLength, alpha):
 def plotEnergies(N, m, magneticLength, LMax, alpha):
     LEList = findEnergiesForRangeOfL(LMax, N, m, magneticLength, alpha)
     L = [item[0] for item in LEList]
-    E = [item[1] for item in LEList]
+    E = [item[1] + alpha*item[0] for item in LEList]
     pyplot.xlabel("Delta L")
-    pyplot.ylabel("E/(e^2/epsilon0/magnetic length/(4*pi))")
+    pyplot.ylabel("E/w_0")
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
-plotEnergies(6, 3, 1, 5, 1/24)
+plotEnergies(12, 3, 1, 5, 0.0596/12*3)

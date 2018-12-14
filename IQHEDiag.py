@@ -8,8 +8,8 @@ import scipy.linalg
 import mpmath
 import matplotlib
 import matplotlib.pyplot as pyplot
+import NBodyBasisMatrixElementCalc
 from usefulTools import generatePartitions
-from NBodyBasisMatrixElementCalc import *
 
 def generateStates(L, N):
     partitions = [item for item in generatePartitions(L) if len(item) <= N]
@@ -26,7 +26,7 @@ def diagonaliseLLevel(L,N, magneticLength):
     states = generateStates(L,N)
     numOfStates = len(states)
 
-    halfMatrix = [[NElectronMatrixElement(states[i], states[j], magneticLength) for j in range(i+1)] for i in range(numOfStates)]
+    halfMatrix = [[NBodyBasisMatrixElementCalc.NElectronMatrixElement(states[i], states[j], magneticLength) for j in range(i+1)] for i in range(numOfStates)]
     #halfMatrix = [[longFormMatrixElement(magneticLength, states[i], states[j]) for j in range(i+1)] for i in range(numOfStates)]
     transposedHalfMatrix = [[halfMatrix[j][i] for j in range(i+1, numOfStates)] for i in range(numOfStates - 1)]
     print(transposedHalfMatrix)
@@ -53,5 +53,3 @@ def plotEnergies(N, LMax, magneticLength, alpha):
     pyplot.ylabel("E/(e^2/epsilon0/magnetic length/(4*pi))")
     pyplot.plot(L, E, 'bo')
     pyplot.show()
-
-plotEnergies(30, 8, 1, 0)

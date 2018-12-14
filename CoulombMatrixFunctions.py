@@ -27,7 +27,7 @@ def A(r,s,t):
 def B(r,s,t):
     return sum([BIntegrand(r,s,t,i) for i in range(s+1)])
 
-def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
+def matrixElementC(magneticLength, m1Prime, m2Prime, m1, m2):
     if (m1Prime + m2Prime == m1 + m2):
         if m2 >= m2Prime:
             t = m2Prime
@@ -42,6 +42,6 @@ def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
 
             return x*y*z/magneticLength
         else:
-            return matrixElement(magneticLength,m1,m2,m1Prime,m2Prime)
+            return matrixElementC(magneticLength,m1,m2,m1Prime,m2Prime)
     else:
         return 0
