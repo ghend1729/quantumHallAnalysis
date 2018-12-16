@@ -13,7 +13,7 @@ from CoulombMatrixFunctions import *
 import potentials
 import haldanePotentials
 
-mpmath.mp.dps = 15
+mpmath.mp.dps = 25
 
 NElectronMatrixElementMemory = {}
 
