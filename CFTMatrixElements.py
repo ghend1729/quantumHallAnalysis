@@ -29,24 +29,28 @@ def kappa(n, gamma):
         answer = answer*(n + i + 1)
     return answer
 
-def TOperatorMatrixElement(gamma, state1, state2):
+def possibleTerms(state1, state2, gamma):
     f = makeLadderOperator
+    allPossibleLadders = []
+    for i in (j for j in range(1, len(gamma)) if len(state1) - j == len(state2) - len(gamma) + j and len(state1) - j >= 0 and len(state2) - len(gamma) + j >= 0):
+        for x in itertools.combinations(range(len(state1)), i):
+            for y in itertools.combinations(range(len(state2)), len(gamma) - i):
+                if checkNonZeroTerm(y, x, state2, state1):
+                    allPossibleLadders.append((f(state1, x),f(state2, y)))
+    return set(allPossibleLadders)
+
+
+def TOperatorMatrixElement(gamma, state1, state2):
     if len(gamma) > len(state1) + len(state2):
         return 0
     else:
         f = makeLadderOperator
-        allPossibleLadders = []
-        for i in (j for j in range(1, len(gamma)) if len(state1) - j == len(state2) - len(gamma) + j and len(state1) - j >= 0 and len(state2) - len(gamma) + j >= 0):
-            for x in itertools.combinations(range(len(state1)), i):
-                for y in itertools.combinations(range(len(state2)), len(gamma) - i):
-                    if checkNonZeroTerm(y, x, state2, state1):
-                        allPossibleLadders.append((f(state1, x),f(state2, y)))
-        print(set(allPossibleLadders))
-        answer = sum([ladderOperatorMatrixElements(x, y, gamma, state1, state2) for (x,y) in set(allPossibleLadders)])
+        terms = possibleTerms(state1, state2, gamma)
+        answer = sum([ladderOperatorMatrixElements(x, y, gamma, state1, state2) for (x,y) in terms])
         return answer*((-1)**sum(gamma))
 
 def checkNonZeroTerm(downsIndex, upsIndex, state2, state1):
-    return tuple([state1[i] for i in range(len(state1)) if not i in downsIndex]) == tuple([state2[i] for i in range(len(state2)) if not i in upsIndex])
+    return tuple([state1[i] for i in range(len(state1)) if not i in upsIndex]) == tuple([state2[i] for i in range(len(state2)) if not i in downsIndex])
 
 def makeLadderOperator(state, ladderIndex):
     return tuple([state[i] for i in ladderIndex])
