@@ -95,9 +95,9 @@ def spectrumCompare(numericalSpectrum, maxOrder, N, m):
     L2 = [item[0] for item in CFTSpectrum]
     E2 = [item[1] for item in CFTSpectrum]
     pyplot.xlabel("Delta L")
-    pyplot.ylabel("E/(e^2/epsilon0/magnetic length/(4*pi))")
+    pyplot.ylabel("E/(e^2/magneticLength*4*pi*epsilon0)")
     pyplot.plot(L1, E1, 'bo')
     pyplot.plot(L2, E2, 'rx')
     pyplot.show()
 
-spectrumCompare(IQHEDiag.findEnergiesForRangeOfL(30, 6, 1, 0), 7, 30, 1)
+spectrumCompare(IQHEDiag.findEnergiesForRangeOfL(90, 8, 1, 0), 1, 90, 1)

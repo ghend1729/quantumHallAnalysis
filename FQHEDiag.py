@@ -47,18 +47,19 @@ def diagLevelL(L, N, m, magneticLength):
 
 def findEnergiesForRangeOfL(LMax, N, m, magneticLength, alpha):
     finalList = []
-    groundConfinementEnergy = alpha*N*m*(N-1)/2
+    groundConfinementEnergy = 0
     for L in range(LMax):
         finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in diagLevelL(L, N, m, magneticLength)]
     return finalList
 
-def plotEnergies(N, m, magneticLength, LMax, alpha):
+def plotEnergies(N, m, magneticLength, LMax, U0):
+    alpha = U0/(m*N)
     LEList = findEnergiesForRangeOfL(LMax, N, m, magneticLength, alpha)
     L = [item[0] for item in LEList]
-    E = [item[1] + alpha*item[0] for item in LEList]
+    E = [item[1] for item in LEList]
     pyplot.xlabel("Delta L")
-    pyplot.ylabel("E/w_0")
+    pyplot.ylabel("E/v3")
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
-plotEnergies(12, 3, 1, 5, 0.0596/12*3)
+plotEnergies(8, 3, 1, 5, 3.6744)

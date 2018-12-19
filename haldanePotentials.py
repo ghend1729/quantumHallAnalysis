@@ -10,7 +10,7 @@ import mpmath
 import itertools
 from usefulTools import norm2 as norm2
 from usefulTools import nCr as nCr
-mpmath.mp.dps = 30
+mpmath.mp.dps = 25
 
 def norm(m, magneticLength):
     return math.sqrt(norm2(m, magneticLength))

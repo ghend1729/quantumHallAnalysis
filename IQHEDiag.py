@@ -45,7 +45,8 @@ def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):
         finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in diagonaliseLLevel(L, N, magneticLength)]
     return finalList
 
-def plotEnergies(N, LMax, magneticLength, alpha):
+def plotEnergies(N, LMax, magneticLength, U0):
+    alpha = U0/N
     LEList = findEnergiesForRangeOfL(N, LMax, magneticLength, alpha)
     L = [item[0] for item in LEList]
     E = [item[1] for item in LEList]
