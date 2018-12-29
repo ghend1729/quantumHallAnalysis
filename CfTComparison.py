@@ -3,6 +3,7 @@ import math
 import numpy
 import numpy.linalg
 import scipy
+import scipy.integrate
 from usefulTools import generatePartitions
 import matplotlib
 import matplotlib.pyplot as pyplot
@@ -85,6 +86,13 @@ def calcSpetrum(LMax, E_0, h_22, h_33, maxOrder, N, m):
         result += [[L, E_0 + E] for E in energies]
     return result
 
+def coulombIntegrand(x, n):
+    return math.cos(n*x)/math.sin(x/2)
+
+def xi(n, N, m):
+    y = scipy.integrate.quad(lambda x: coulombIntegrand(x, n), 1/math.sqrt(2*N*m), math.pi)
+    return n*y[0]
+
 def spectrumCompare(numericalSpectrum, maxOrder, N, m):
     LMax = numericalSpectrum[-1][0] + 1
     print(numericalSpectrum)
@@ -100,4 +108,4 @@ def spectrumCompare(numericalSpectrum, maxOrder, N, m):
     pyplot.plot(L2, E2, 'rx')
     pyplot.show()
 
-spectrumCompare(IQHEDiag.findEnergiesForRangeOfL(90, 8, 1, 0), 1, 90, 1)
+#spectrumCompare(IQHEDiag.findEnergiesForRangeOfL(90, 8, 1, 0), 1, 90, 1)
