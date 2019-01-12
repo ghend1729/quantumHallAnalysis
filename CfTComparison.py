@@ -24,9 +24,9 @@ def beta(n):
 
 def doubleFactorial(n):
     if n == 1 or n == 2:
-        return 1
+        return n
     else:
-        return doubleFactorial(n - 2)
+        return n*doubleFactorial(n - 2)
 
 def H22(state1, state2, maxOrder, N, m):
     answer = CFTMatrixElements.TOperatorMatrixElement((2,2), state1, state2)
@@ -37,7 +37,7 @@ def H22(state1, state2, maxOrder, N, m):
         print(" ")
     if maxOrder > 0:
         for i in range(1, maxOrder + 1):
-            answer += 8*doubleFactorial(2*i + 1)*CFTMatrixElements.TOperatorMatrixElement((2,)*i, state1, state2)/doubleFactorial(2*i + 4)/(N*math.sqrt(m))**i
+            answer += 8*doubleFactorial(2*i + 1)*CFTMatrixElements.TOperatorMatrixElement((2,)*(i+2), state1, state2)/doubleFactorial(2*i + 4)/((N*math.sqrt(m))**i)
     return answer
 
 def H33(state1, state2, maxOrder, N, m):
@@ -55,13 +55,15 @@ def H33(state1, state2, maxOrder, N, m):
 def H(h_22, h_33, state1, state2, maxOrder, N, m):
     return h_22*H22(state1, state2, maxOrder, N, m) + h_33*H33(state1, state2, maxOrder, N, m)
 
-def zeroOrderEnergies(n, h_22, h_33):
-    return 2*n*(n**2 - 1)*(h_33*(n**2 - 4) - h_22)
+def zeroOrderEnergies(n, h_22, h_33, h_44=0, h_55=0):
+    return 2*n*(n**2 - 1)*(h_33*(n**2 - 4) - h_22 - (n**2 - 4)*(n**2 - 9)*h_44 + (n**2 - 4)*(n**2 - 9)*(n**2 - 16)*h_55)
 
 def stateEnergy(partition, h_22, h_33):
     return sum([zeroOrderEnergies(n, h_22, h_33) for n in partition])
 
 def findParameters(spectrum):
+    for i in spectrum:
+        print(i)
     E_0 = spectrum[0][1]
     E_2 = spectrum[2][1]
     E_3 = spectrum[4][1]
@@ -97,7 +99,9 @@ def spectrumCompare(numericalSpectrum, maxOrder, N, m):
     LMax = numericalSpectrum[-1][0] + 1
     print(numericalSpectrum)
     E_0, h_22, h_33 = findParameters(numericalSpectrum)
+    print(h_22, h_33)
     CFTSpectrum = calcSpetrum(LMax, E_0, h_22, h_33, maxOrder, N, m)
+    print(CFTSpectrum)
     L1 = [item[0] for item in numericalSpectrum]
     E1 = [item[1] for item in numericalSpectrum]
     L2 = [item[0] for item in CFTSpectrum]
@@ -108,4 +112,4 @@ def spectrumCompare(numericalSpectrum, maxOrder, N, m):
     pyplot.plot(L2, E2, 'rx')
     pyplot.show()
 
-#spectrumCompare(IQHEDiag.findEnergiesForRangeOfL(90, 8, 1, 0), 1, 90, 1)
+spectrumCompare(IQHEDiag.findEnergiesForRangeOfL(50, 6, 1, 0), 0, 50, 1)

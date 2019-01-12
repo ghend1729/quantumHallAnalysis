@@ -35,7 +35,7 @@ def diagonaliseLLevel(L,N, magneticLength):
     pertubationMatrix = mpmath.mp.matrix(fullMatrix)
     print(pertubationMatrix)
     energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True)
-    return [float(mpmath.nstr(x)) for x in energies]
+    return [float(mpmath.nstr(x, n=20)) for x in energies]
 
 
 def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):

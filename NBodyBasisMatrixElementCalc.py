@@ -17,7 +17,7 @@ mpmath.mp.dps = 25
 
 matrixElementMemory = {}
 
-useHaldane = False
+useHaldane = True
 V = potentials.exponentailRepulsion
 
 def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
