@@ -13,11 +13,11 @@ from CoulombMatrixFunctions import *
 import potentials
 import haldanePotentials
 
-mpmath.mp.dps = 25
+mpmath.mp.dps = 12
 
 matrixElementMemory = {}
 
-useHaldane = True
+useHaldane = False
 V = potentials.exponentailRepulsion
 
 def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
