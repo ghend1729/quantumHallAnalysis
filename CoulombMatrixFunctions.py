@@ -14,7 +14,7 @@ mpmath.mp.dps = 10
 
 def AIntegrand(r,s,t,i):
     f = mpmath.gamma
-    g = math.factorial
+    g = mpmath.factorial
     x = mpmath.binomial(s,i)*(f(i+1/2)/g(r+i))*(f(1/2+r+i)/f(3/2+r+t+i))
     return x
 
@@ -33,7 +33,7 @@ def matrixElementC(magneticLength, m1Prime, m2Prime, m1, m2):
             t = m2Prime
             s = m1
             r = m2 - t
-            f = math.factorial
+            f = mpmath.factorial
             g = mpmath.gamma
 
             x = mpmath.sqrt((f(s+r)/f(s))*(f(t+r)/f(t)))

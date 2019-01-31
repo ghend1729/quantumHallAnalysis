@@ -13,12 +13,12 @@ from CoulombMatrixFunctions import *
 import potentials
 import haldanePotentials
 
-mpmath.mp.dps = 12
+mpmath.mp.dps = 15
 
 matrixElementMemory = {}
 
 useHaldane = False
-V = potentials.exponentailRepulsion
+V = potentials.v_k
 
 def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
     if (m1Prime, m2Prime, m1, m2) in matrixElementMemory:
@@ -33,16 +33,20 @@ def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
         matrixElementMemory[(m1Prime, m2Prime, m1, m2)] = result
     return result
 
-def NElectronMatrixElement(state1, state2, magneticLength):
+def NElectronMatrixElement(state1, state2, magneticLength, fermion = True):
     """
-    Calculate the interaction matrix element between two slater determinent states.
+    Calculate the interaction matrix element between two slater determinent states or bosonic states.
     """
+    if fermion:
+        exchangeFactor = -1
+    else:
+        exchangeFactor = 1
     x = 0
     diff = findDifferentElements(state1, state2)
     if len(diff[0]) == 0:
         for i in range(len(state1)):
             for j in range(i+1, len(state1)):
-                x += twoElectronMatrixElement(state1[i], state1[j], state2[i], state2[j], magneticLength)
+                x += twoElectronMatrixElement(state1[i], state1[j], state2[i], state2[j], magneticLength, exchangeFactor)
     elif len(diff[0]) == 1:
         state1Diff = diff[0][0]
         state2Diff = diff[1][0]
@@ -52,17 +56,17 @@ def NElectronMatrixElement(state1, state2, magneticLength):
         del newState1[state1Diff]
         del newState2[state2Diff]
 
-        sighn1 = (-1)**(N-1 - state1Diff)
-        sighn2 = (-1)**(N-1 - state2Diff)
+        sighn1 = (exchangeFactor)**(N-1 - state1Diff)
+        sighn2 = (exchangeFactor)**(N-1 - state2Diff)
 
-        x = sighn1*sighn2*sum([matrixElement(magneticLength, state2[i], state1[state1Diff], state2[i], state2[state2Diff]) - matrixElement(magneticLength, state1[state1Diff], state2[i], state2[i], state2[state2Diff]) for i in range(N)])
+        x = sighn1*sighn2*sum([matrixElement(magneticLength, state2[i], state1[state1Diff], state2[i], state2[state2Diff]) + exchangeFactor*matrixElement(magneticLength, state1[state1Diff], state2[i], state2[i], state2[state2Diff]) for i in range(N)])
     elif len(diff[0]) == 2:
         N = len(state1)
         i, j = diff[0][0], diff[0][1]
         k, l = diff[1][0], diff[1][1]
-        sighn1 = (-1)**(2*N - 3 - i - j)
-        sighn2 = (-1)**(2*N - 3 - k - l)
-        x = sighn1*sighn2*(matrixElement(magneticLength,state1[i],state1[j],state2[k],state2[l]) - matrixElement(magneticLength,state1[j],state1[i],state2[k],state2[l]))
+        sighn1 = (exchangeFactor)**(2*N - 3 - i - j)
+        sighn2 = (exchangeFactor)**(2*N - 3 - k - l)
+        x = sighn1*sighn2*(matrixElement(magneticLength,state1[i],state1[j],state2[k],state2[l]) + exchangeFactor*matrixElement(magneticLength,state1[j],state1[i],state2[k],state2[l]))
     else:
         x = 0
     return x
@@ -91,12 +95,12 @@ def longFormMatrixElement(magneticLength, state1, state2):
                     x += sighn*potentialij(i, j, permuteList(p1, state1), permuteList(p2, state2), magneticLength)
     return x
 
-def twoElectronMatrixElement(i,j,k,l, magneticLength):
+def twoElectronMatrixElement(i,j,k,l, magneticLength, exchangeFactor):
     y = 0
     if (i, j, k, l) in matrixElementMemory:
         y = matrixElementMemory[(i, j, k, l)]
     else:
-        y = matrixElement(magneticLength, i, j, k, l) - matrixElement(magneticLength, i, j, l, k)
+        y = matrixElement(magneticLength, i, j, k, l) + exchangeFactor*matrixElement(magneticLength, i, j, l, k)
         matrixElementMemory[(i, j, k, l)] = y
     return y
 

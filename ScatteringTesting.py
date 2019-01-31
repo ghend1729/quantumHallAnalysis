@@ -2,10 +2,13 @@
 
 import numpy
 import scipy
+import math
 import IQHEDiag
+import FQHEDiag
 import matplotlib
 import matplotlib.pyplot as pyplot
 import usefulTools
+import scipy.optimize
 
 def findDispersion(spectrum, LMax):
     E = {0 : 0, 1 : 0}
@@ -26,6 +29,9 @@ def predictSpectrum(E, LMax, E_0):
         result += [[L, E_0 + stateEnergyFromDispersion(p, E)] for p in partitions]
     return result
 
+def f(n, g, h, h_22):
+    return g*n*(n-1) + h*(n-1) + h_22*n*(n**2 - 1)
+
 def spectrumCompareWithNoScatter(numericalSpectrum):
     LMax = numericalSpectrum[-1][0] + 1
     print(numericalSpectrum)
@@ -42,15 +48,14 @@ def spectrumCompareWithNoScatter(numericalSpectrum):
     E2 = [item[1] + U*item[0] for item in CFTSpectrum]
     Ls = [L for L in E if L > 0]
     EAbs = [-E[L] for L in E if L > 0]
-    p = numpy.polyfit(Ls, EAbs, 4)
-    for i in range(5):
-        print(4-i)
-        print(p[i])
-    EPred = [numpy.polyval(p, L) for L in Ls]
+    g, h, h_22 = scipy.optimize.curve_fit(f, Ls, EAbs)[0]
+    print(g, h, h_22)
+    EPred = [f(L, g, h, h_22) for L in Ls]
     EDiff = [EAbs[i] - EPred[i] for i in range(len(Ls))]
-    #pyplot.plot(Ls, EDiff)
-    pyplot.plot(Ls, EPred, 'ko')
-    pyplot.plot(Ls, EAbs)
+    pyplot.xlabel("L", fontsize = 20)
+    pyplot.ylabel("|E(L)|", fontsize = 20)
+    pyplot.plot(Ls, EAbs, 'ko')
+    pyplot.plot(Ls, EPred)
     """
     pyplot.subplot(1,2,1)
     pyplot.xlabel("Angular momentum above ground state", fontsize = 24)
@@ -65,5 +70,33 @@ def spectrumCompareWithNoScatter(numericalSpectrum):
     """
     pyplot.show()
 
-numericalSpectrum = IQHEDiag.findEnergiesForRangeOfL(40, 8, 1, 0)
-spectrumCompareWithNoScatter(numericalSpectrum)
+def scaleTest():
+    Ns = []
+    hsScaled = []
+    h_22sScaled = []
+
+    for N in range(70, 140):
+        spectrum = IQHEDiag.findEnergiesForRangeOfL(N, 11, 1, 0)
+        E = findDispersion(spectrum, 11)
+        Ls = [L for L in E if L > 0]
+        EAbs = [-E[L] for L in E if L > 0]
+        g, h, h_22 = scipy.optimize.curve_fit(f, Ls, EAbs)[0]
+        hsScaled.append(h*(math.sqrt(N)))
+        h_22sScaled.append(h_22*(math.sqrt(N)**3))
+        Ns.append(N)
+
+    pyplot.subplot(1,2,1)
+    pyplot.xlabel("N", fontsize = 20)
+    pyplot.ylabel("h/sqrt(N)^-1")
+    pyplot.plot(Ns, hsScaled)
+
+    pyplot.subplot(1,2,2)
+    pyplot.xlabel("N", fontsize = 20)
+    pyplot.ylabel("h_22/sqrt(N)^-3")
+    pyplot.plot(Ns, h_22sScaled)
+
+    pyplot.show()
+
+#spectrum = IQHEDiag.findEnergiesForRangeOfL(200, 11, 100, 0)
+#spectrumCompareWithNoScatter(spectrum)
+scaleTest()

@@ -34,7 +34,8 @@ def diagonaliseLLevel(L,N, magneticLength):
     fullMatrix.append(halfMatrix[numOfStates-1])
     pertubationMatrix = mpmath.mp.matrix(fullMatrix)
     print(pertubationMatrix)
-    energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True)
+    print("Diagonalising L = " + str(L) + " level")
+    energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True, overwrite_a = True)
     return [float(mpmath.nstr(x, n=20)) for x in energies]
 
 

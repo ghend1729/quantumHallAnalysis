@@ -61,5 +61,3 @@ def plotEnergies(N, m, magneticLength, LMax, U0):
     pyplot.ylabel("E/v3")
     pyplot.plot(L, E, 'bo')
     pyplot.show()
-
-plotEnergies(8, 3, 1, 5, 3.6744)
