@@ -30,10 +30,16 @@ def predictSpectrum(E, LMax, E_0):
         result += [[L, E_0 + stateEnergyFromDispersion(p, E)] for p in partitions]
     return result
 
-def f(n, g, h, a, b):
-    return g*n + a*numpy.exp(-h*(n-1)) + b
+def delta(x):
+    if x == 1:
+        return 1
+    else:
+        return 0
 
-def spectrumCompareWithNoScatter(numericalSpectrum):
+def f(n, g, h, a, b):
+    return g*(n-1)**2 + h*(n-1) + a*(n-1)**3 + b*(n-1)**4
+
+def spectrumCompareWithNoScatter(numericalSpectrum, N):
     LMax = numericalSpectrum[-1][0] + 1
     print(numericalSpectrum)
     E_0 = numericalSpectrum[0][1]
@@ -47,18 +53,20 @@ def spectrumCompareWithNoScatter(numericalSpectrum):
     E1 = [item[1] + U*item[0] for item in numericalSpectrum]
     L2 = [item[0] for item in CFTSpectrum]
     E2 = [item[1] + U*item[0] for item in CFTSpectrum]
-    Ls = [L for L in E if L > 0]
-    EAbs = [-E[L] for L in E if L > 0]
-    LFit = [L for L in E if L > 0]
-    EFit = [-E[L] for L in E if L > 0]
-    #g, h, a, b = scipy.optimize.curve_fit(f, LFit, EFit)[0]
-    #print(g, h, a, b)
-    #EPred = [f(L, g, h, a, b) for L in Ls]
-    EDiff = [EAbs[i] - EAbs[i-1] for i in range(1, len(Ls))]
-    LDiff = [L for L in Ls if L > 1]
-    pyplot.xlabel("L", fontsize = 20)
+    Ls = [L for L in E if L > 1]
+    EAbs = [-E[L] for L in E if L > 1]
+    LFit = [L for L in E if L > 0 and L < 7]
+    EFit = [-E[L] for L in E if L > 0 and L < 7]
+    g, h, a, b = scipy.optimize.curve_fit(f, LFit, EFit)[0]
+    print(g, h, a, b)
+    EPred = [f(L, g, h, a, b) for L in Ls]
+    EDiff = [(EAbs[i] - EPred[i])/max(EAbs) for i in range(len(EAbs))]
+    EDiff2 = [EAbs[i] - EAbs[i-1] for i in range(1, len(Ls))]
+    LDiff2 = [Ls[i] for i in range(1, len(Ls))]
+    findPeak(LDiff2, EDiff2)
+    pyplot.xlabel("sqrt((N + L)/N)", fontsize = 20)
     pyplot.ylabel("|E(L)|", fontsize = 20)
-    pyplot.plot(LDiff, EDiff, 'ko')
+    pyplot.plot([math.sqrt((N + L)/N) for L in Ls], EAbs, 'ko')
     """
     pyplot.subplot(1,2,1)
     pyplot.xlabel("Angular momentum above ground state", fontsize = 24)
@@ -74,37 +82,43 @@ def spectrumCompareWithNoScatter(numericalSpectrum):
     """
     pyplot.show()
 
-def scaleTest():
+def pow(x, a, b):
+    return b*x**a
+
+def scaleTest(spectra):
     Ns = []
     hsScaled = []
-    h_22sScaled = []
     gsScaled = []
-    h_22s = []
     hs = []
     gs = []
-    for N in range(70, 200):
-        spectrum = IQHEDiag.findEnergiesForRangeOfL(N, 11, 1, 0)
+    As = []
+    asScaled = []
+    for N in range(150, 200):
+        spectrum = spectra[(N, 11)]
         E = findDispersion(spectrum, 11)
-        Ls = [L for L in E if L > 0]
-        EAbs = [-E[L] for L in E if L > 0]
-        g, h, h_22 = scipy.optimize.curve_fit(f, Ls, EAbs)[0]
-        hsScaled.append(h*(math.sqrt(N)))
-        h_22sScaled.append(h_22*(math.sqrt(N)**3))
-        gsScaled.append(g*math.sqrt(N))
+        Ls = [L for L in E if L > 1 and L < 7]
+        EAbs = [-E[L] for L in E if L > 1 and L < 7]
+        g, h, a, b = scipy.optimize.curve_fit(f, Ls, EAbs)[0]
+        hsScaled.append(h*math.sqrt(N))
+        gsScaled.append(g*N**(1/2))
         Ns.append(N)
-        h_22s.append(h_22)
         hs.append(h)
         gs.append(g)
+        As.append(a)
+        asScaled.append(a*N**(2/3))
+
+    a, b = scipy.optimize.curve_fit(pow, Ns, As)[0]
+    print(a, b)
 
     pyplot.subplot(1,2,1)
     pyplot.xlabel("N", fontsize = 20)
-    pyplot.ylabel("g/sqrt(N)^-1")
+    pyplot.ylabel("g")
     pyplot.plot(Ns, gsScaled)
 
     pyplot.subplot(1,2,2)
-    pyplot.xlabel("g", fontsize = 20)
-    pyplot.ylabel("h_22")
-    pyplot.plot(gs, h_22s)
+    pyplot.xlabel("N", fontsize = 20)
+    pyplot.ylabel("h")
+    pyplot.plot(Ns, hsScaled)
 
     pyplot.show()
 
@@ -124,14 +138,44 @@ def generateData():
     pickle.dump(spectra, spectraFile)
     spectraFile.close()
 
+def findPeak(LDiff, EDiff):
+    approxPeakIndex = EDiff.index(max(EDiff))
+    fitDataL = LDiff[approxPeakIndex - 1: approxPeakIndex + 2]
+    fitDataEDiff = EDiff[approxPeakIndex - 1: approxPeakIndex + 2]
+    p = numpy.polyfit(fitDataL, fitDataEDiff, 2)
+    return -p[1]/(2*p[0])
 
-
-
-#spectrum = IQHEDiag.findEnergiesForRangeOfL(100, 19, 1, 0)
-#spectrumCompareWithNoScatter(spectrum)
-#scaleTest()
-#generateData()
+def peakAnalysis():
+    Ns = []
+    LPeaks = []
+    for N in range(30, 140):
+        spectrum = spectra[(N, 15)]
+        E = findDispersion(spectrum, 15)
+        Ls = [L for L in E if L > 1]
+        EAbs = [-E[L] for L in E if L > 1]
+        EDiff2 = [EAbs[i] - EAbs[i-1] for i in range(1, len(Ls))]
+        LDiff2 = [Ls[i] for i in range(1, len(Ls))]
+        peak = findPeak(LDiff2, EDiff2)
+        LPeaks.append(peak)
+        Ns.append(N)
+    a, b = scipy.optimize.curve_fit(pow, Ns, LPeaks)[0]
+    print(a, b)
+    pyplot.ylabel("L value of peak", fontsize = 18)
+    pyplot.xlabel("N", fontsize = 18)
+    pyplot.plot(Ns, LPeaks)
+    pyplot.show()
 
 spectraFile = open("BigSpectraCollection.p", 'rb')
 spectra = pickle.load(spectraFile)
-spectrumCompareWithNoScatter(spectra[(30, 19)])
+spectraFile.close()
+spectrumCompareWithNoScatter(spectra[(30, 19)], 70)
+#scaleTest(spectra)
+#peakAnalysis()
+"""
+for N in range(30, 140):
+    spectrum = IQHEDiag.findEnergiesForRangeOfL(N, 15, 1, 0)
+    spectra[(N, 15)] = spectrum
+spectraFile2 = open("BigSpectraCollection.p", 'wb')
+pickle.dump(spectra, spectraFile2)
+spectraFile2.close()
+"""
