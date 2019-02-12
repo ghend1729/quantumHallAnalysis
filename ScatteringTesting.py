@@ -37,7 +37,7 @@ def delta(x):
         return 0
 
 def f(n, g, h, a, b):
-    return g*(n-1)**2 + h*(n-1) + a*(n-1)**3 + b*(n-1)**4
+    return g*(n-1)*n + h*(n-1) + a*n*(n-1)*(n-2)
 
 def spectrumCompareWithNoScatter(numericalSpectrum, N):
     LMax = numericalSpectrum[-1][0] + 1
@@ -53,10 +53,10 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     E1 = [item[1] + U*item[0] for item in numericalSpectrum]
     L2 = [item[0] for item in CFTSpectrum]
     E2 = [item[1] + U*item[0] for item in CFTSpectrum]
-    Ls = [L for L in E if L > 1]
-    EAbs = [-E[L] for L in E if L > 1]
-    LFit = [L for L in E if L > 0 and L < 7]
-    EFit = [-E[L] for L in E if L > 0 and L < 7]
+    Ls = [L for L in E if L > 0]
+    EAbs = [-E[L] for L in E if L > 0]
+    LFit = [L for L in E if L > 0]
+    EFit = [-E[L] for L in E if L > 0]
     g, h, a, b = scipy.optimize.curve_fit(f, LFit, EFit)[0]
     print(g, h, a, b)
     EPred = [f(L, g, h, a, b) for L in Ls]
@@ -64,9 +64,11 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     EDiff2 = [EAbs[i] - EAbs[i-1] for i in range(1, len(Ls))]
     LDiff2 = [Ls[i] for i in range(1, len(Ls))]
     findPeak(LDiff2, EDiff2)
-    pyplot.xlabel("sqrt((N + L)/N)", fontsize = 20)
-    pyplot.ylabel("|E(L)|", fontsize = 20)
-    pyplot.plot([math.sqrt((N + L)/N) for L in Ls], EAbs, 'ko')
+    pyplot.title("N = 339 Difference Graph", fontsize = 18)
+    pyplot.xlabel("N", fontsize = 20)
+    pyplot.ylabel("|E(n) - E(n-1)|", fontsize = 20)
+    pyplot.plot(LDiff2, EDiff2, 'ko')
+    #pyplot.plot(Ls, EPred)
     """
     pyplot.subplot(1,2,1)
     pyplot.xlabel("Angular momentum above ground state", fontsize = 24)
@@ -168,13 +170,14 @@ def peakAnalysis():
 spectraFile = open("BigSpectraCollection.p", 'rb')
 spectra = pickle.load(spectraFile)
 spectraFile.close()
-spectrumCompareWithNoScatter(spectra[(30, 19)], 70)
+spectrumCompareWithNoScatter(spectra[(339, 11)], 339)
 #scaleTest(spectra)
 #peakAnalysis()
 """
-for N in range(30, 140):
-    spectrum = IQHEDiag.findEnergiesForRangeOfL(N, 15, 1, 0)
-    spectra[(N, 15)] = spectrum
+for N in range(200, 301):
+    spectrum = IQHEDiag.findEnergiesForRangeOfL(N, 11, 1, 0)
+    spectra[(N, 11)] = spectrum
+IQHEDiag.dumpRequest()
 spectraFile2 = open("BigSpectraCollection.p", 'wb')
 pickle.dump(spectra, spectraFile2)
 spectraFile2.close()

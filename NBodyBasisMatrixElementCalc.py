@@ -5,6 +5,7 @@ import numpy.linalg
 import scipy
 import scipy.linalg
 import mpmath
+import pickle
 import itertools
 from sympy.combinatorics.permutations import Permutation
 import matplotlib
@@ -15,10 +16,20 @@ import haldanePotentials
 
 mpmath.mp.dps = 15
 
-matrixElementMemory = {}
-
 useHaldane = False
 V = potentials.v_k
+
+if not useHaldane:
+    matrixElementFile = open("coulombMatrixElements.p", 'rb')
+    matrixElementMemory = pickle.load(matrixElementFile)
+    matrixElementFile.close()
+else:
+    matrixElementMemory = {}
+
+def dumpMatrixElements():
+    matrixElementsFile = open("coulombMatrixElements.p", 'wb')
+    pickle.dump(matrixElementMemory, matrixElementsFile)
+    matrixElementsFile.close()
 
 def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
     if (m1Prime, m2Prime, m1, m2) in matrixElementMemory:

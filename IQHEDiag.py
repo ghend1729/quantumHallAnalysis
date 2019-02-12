@@ -11,6 +11,9 @@ import matplotlib.pyplot as pyplot
 import NBodyBasisMatrixElementCalc
 from usefulTools import generatePartitions
 
+def dumpRequest():
+    NBodyBasisMatrixElementCalc.dumpMatrixElements()
+
 def generateStates(L, N):
     partitions = [item for item in generatePartitions(L) if len(item) <= N]
     states = []
@@ -34,7 +37,7 @@ def diagonaliseLLevel(L,N, magneticLength):
     fullMatrix.append(halfMatrix[numOfStates-1])
     pertubationMatrix = mpmath.mp.matrix(fullMatrix)
     print(pertubationMatrix)
-    print("Diagonalising L = " + str(L) + " level")
+    print("Diagonalising L = " + str(L) + " level with N = " + str(N))
     energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True, overwrite_a = True)
     return [float(mpmath.nstr(x, n=20)) for x in energies]
 
