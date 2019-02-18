@@ -170,7 +170,7 @@ def peakAnalysis():
 spectraFile = open("BigSpectraCollection.p", 'rb')
 spectra = pickle.load(spectraFile)
 spectraFile.close()
-spectrumCompareWithNoScatter(spectra[(339, 11)], 339)
+#spectrumCompareWithNoScatter(spectra[(339, 11)], 339)
 #scaleTest(spectra)
 #peakAnalysis()
 """
