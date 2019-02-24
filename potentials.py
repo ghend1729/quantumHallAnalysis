@@ -1,7 +1,7 @@
 #Interaction potentials
 """
 This is a library for storing functions that describe each interaction potential
-as a Haldane Pseudopotential.
+as Haldane pseudo-potentials.
 """
 
 import math

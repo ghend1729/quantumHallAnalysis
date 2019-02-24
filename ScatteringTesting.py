@@ -64,8 +64,9 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     EDiff2 = [EAbs[i] - EAbs[i-1] for i in range(1, len(Ls))]
     LDiff2 = [Ls[i] for i in range(1, len(Ls))]
     findPeak(LDiff2, EDiff2)
+
     pyplot.title("N = 339 Difference Graph", fontsize = 18)
-    pyplot.xlabel("N", fontsize = 20)
+    pyplot.xlabel("n", fontsize = 20)
     pyplot.ylabel("|E(n) - E(n-1)|", fontsize = 20)
     pyplot.plot(LDiff2, EDiff2, 'ko')
     #pyplot.plot(Ls, EPred)
@@ -170,7 +171,22 @@ def peakAnalysis():
 spectraFile = open("BigSpectraCollection.p", 'rb')
 spectra = pickle.load(spectraFile)
 spectraFile.close()
-#spectrumCompareWithNoScatter(spectra[(339, 11)], 339)
+
+N = 200
+keepGoing = True
+while keepGoing:
+    x = IQHEDiag.findEnergiesForRangeOfL(N, 11, 1, 0)
+    y = spectra[(N,11)]
+    for i in range(len(x)):
+        if not (x[i][1] - y[i][1] == 0.0):
+            keepGoing = False
+            print("Error!!!")
+    N += 1
+    if N == 340:
+        keepGoing = False
+
+IQHEDiag.dumpRequest()
+#spectrumCompareWithNoScatter(IQHEDiag.findEnergiesForRangeOfL(40, 18, 1, 0), 70)
 #scaleTest(spectra)
 #peakAnalysis()
 """

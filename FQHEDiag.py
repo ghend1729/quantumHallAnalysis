@@ -1,4 +1,9 @@
 #FQHE
+"""
+This calculates the edge spectrum in the case of Laughlin 1/m fractional filling of a
+quantum Hall system.
+"""
+
 import scipy
 import numpy
 import mpmath
@@ -13,6 +18,11 @@ from usefulTools import signOfPermutation
 
 
 def genStates(L, N, m, magneticLength):
+    """
+    Generates the jack polynomial basis for angular momentum L above the
+    Laughlin state as waveFunction objects. It then takes this basis and
+    converts it to an orthonomal basis the Gram-Schmidt procedure.
+    """
     LaughlinState = [i*m for i in range(N)]
     if m % 2 == 1:
         fermion = True
@@ -31,6 +41,11 @@ def genStates(L, N, m, magneticLength):
     return waveFunctions
 
 def diagLevelL(L, N, m, magneticLength):
+    """
+    Diagonalises the pertubation for angular momentum L above the Laughlin state
+    with N particles and returns this as a list in the same format as the simular function
+    in IQHEDiag module.
+    """
     states = genStates(L, N, m, magneticLength)
     numOfStates = len(states)
 
@@ -46,6 +61,10 @@ def diagLevelL(L, N, m, magneticLength):
     return [float(mpmath.nstr(x)) for x in energies]
 
 def findEnergiesForRangeOfL(LMax, N, m, magneticLength, alpha):
+    """
+    Diagonalises the pertubation up to an angular momentum LMax - 1 above the
+    Laughlin State.
+    """
     finalList = []
     groundConfinementEnergy = 0
     for L in range(LMax):

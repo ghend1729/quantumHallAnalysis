@@ -4,6 +4,7 @@ import scipy
 import scipy.special as special
 import scipy.integrate as integrate
 import math
+import mpmath
 import IQHEDiag
 import FQHEDiag
 import matplotlib
@@ -12,6 +13,8 @@ import usefulTools
 import scipy.optimize
 import pickle
 import ScatteringTesting
+
+mpmath.mp.dps = 10
 
 def unnormalisedPotential(x):
     return integrate.quad(lambda q: (special.j0(q*x)/q)*special.j1(q), 0, numpy.inf, limit = 1000)[0]
@@ -34,6 +37,12 @@ def besselIntegrand(r, r0, k):
 def integrateTest(theLimit, r, r0):
     return integrate.quad(lambda x: besselIntegrand(r, r0, x), 0, theLimit, limit = 1000)
 
+def besselIntegrandReversed(r, k, r0, N):
+    return r*special.j0(k*r)*chargeDistroExact(r*r0, N)
+
+def kIntegrand(r0, k, N):
+    return -2*math.pi*k*special.j1(k)*integrate.quad(lambda r: besselIntegrandReversed(r, k, r0, N), 0, numpy.inf, limit = 1000)[0]
+
 def integrateBessel(r, r0):
     """
     compute the bessel integrals in the case special averaging limits.
@@ -46,11 +55,17 @@ def integrateBessel(r, r0):
     chunks = 7
     return sum([integrateTest(2000 + i*delta/chunks, r, r0)[0] for i in range(chunks)])/chunks
 
-def chargeDistro(r, R):
+def chargeDistro(r, N):
+    R = math.sqrt(2*N)
     if r < R:
         return 1/(2*math.pi)
     else:
         return numpy.exp(-(r-R)**2)/(2*math.pi)
+
+def chargeDistroExact(r, N):
+    answer = sum([mpmath.power((r**2)/2, m)/mpmath.factorial(m) for m in range(N-1)])*mpmath.exp(-(r**2)/2)/(2*math.pi)
+    return float(mpmath.nstr(answer, n=10))
+
 
 def plotPotential():
     x = [1/i for i in range(10000, 10040)]
@@ -62,9 +77,12 @@ def plotPotential():
 
 def differentiator2(r0, R):
     dx = 0.01
-    x = [i*dx for i in range(600)]
-    y = [integrateBessel(r*R, R)*r*chargeDistro(r, 1) for r in x]
+    x = [i*dx for i in range(1000)]
+    y = [2*math.pi*integrateBessel(r, 1)*r*chargeDistro(r*r0, R) for r in x]
     return dx*sum(y)
+
+def differentiator3(r0, N):
+    return integrate.quad(lambda k: kIntegrand(r0, k, N), 0, numpy.inf, limit = 1000)[0]
 
 def spectrumFitter(spectrum, N):
     LMax = spectrum[-1][0] + 1
@@ -72,7 +90,7 @@ def spectrumFitter(spectrum, N):
     EAbs = [-E[L] for L in E]
     Ls = [L for L in E]
     R = math.sqrt(2*(N))
-    h = -differentiator2(R, R)/R
+    h = -differentiator3(R, N)/R
     p = numpy.polyfit(Ls[5:], EAbs[5:], 1)
     print(h/p[0])
     predE = [L*h for L in Ls]
@@ -85,5 +103,5 @@ def spectrumFitter(spectrum, N):
     pyplot.show()
 
 
-spectrumFitter(ScatteringTesting.spectra[(339, 11)], 339)
+spectrumFitter(ScatteringTesting.spectra[(40, 11)], 40)
 #plotPotential()

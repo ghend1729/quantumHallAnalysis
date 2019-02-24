@@ -1,5 +1,7 @@
 #Integer Quantum Hall Effect
-
+"""
+This module is for calculating the edge spectrum of the integer quantum hall effect.
+"""
 import math
 import numpy
 import numpy.linalg
@@ -12,9 +14,15 @@ import NBodyBasisMatrixElementCalc
 from usefulTools import generatePartitions
 
 def dumpRequest():
+    """
+    Save the matrix element memeroy.
+    """
     NBodyBasisMatrixElementCalc.dumpMatrixElements()
 
 def generateStates(L, N):
+    """
+    Generate a slater basis of states for angular momentum level L above ground.
+    """
     partitions = [item for item in generatePartitions(L) if len(item) <= N]
     states = []
     for x in partitions:
@@ -26,6 +34,12 @@ def generateStates(L, N):
     return states
 
 def diagonaliseLLevel(L,N, magneticLength):
+    """
+    Calculates the pertubation matrix for angular momentum L above
+    the Laughlin state and then diagonalises it to find the first order perturbation
+    to the energy levels (when we have N particles).
+    Returns these energies as a list.
+    """
     states = generateStates(L,N)
     numOfStates = len(states)
 
@@ -43,6 +57,12 @@ def diagonaliseLLevel(L,N, magneticLength):
 
 
 def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):
+    """
+    Finds the first order pertubation energies for angular momentum up to LMax - 1 above
+    Laughlin state. This will return a list of two element lists.
+    The two element lists are in the form:
+    [angular momentum above Laughlin state, energy above Laughlin state]
+    """
     finalList = []
     groundConfinementEnergy = alpha*N*(N-1)/2
     for L in range(LMax):

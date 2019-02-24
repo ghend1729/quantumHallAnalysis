@@ -1,9 +1,12 @@
 #Coulomb matrix element functions
-#These functions are for calculating relavent matrix elements for the Coulomb interaction between TWO electrons in the lowest
-#Landau level.
-#
-#These formulea are taken directly from 'Composite Fermions', by J. K. Jain.
-#The names of the functions are the symbols given in the book for consistencyself.
+"""
+These functions are for calculating relavent matrix elements for the Coulomb interaction between TWO electrons in the lowest
+Landau level.
+
+These formulea are taken directly from 'Composite Fermions', by J. K. Jain.
+The names of the functions are the symbols given in the book for consistency.
+This code is followable if one looks at these formulas.
+"""
 
 import math
 import scipy
@@ -11,6 +14,7 @@ import scipy.special
 import mpmath
 
 mpmath.mp.dps = 10
+#set mpmath precision
 
 def AIntegrand(r,s,t,i):
     f = mpmath.gamma
@@ -19,7 +23,7 @@ def AIntegrand(r,s,t,i):
     return x
 
 def BIntegrand(r,s,t,i):
-    return AIntegrand(r,s,t,i)*(1/2+r+2*i)
+    return AIntegrand(r,s,t,i)*(1/2 + r + 2*i)
 
 def A(r,s,t):
     return sum([AIntegrand(r,s,t,i) for i in range(s+1)])
