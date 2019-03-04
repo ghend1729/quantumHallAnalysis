@@ -49,8 +49,8 @@ def delta(x):
     else:
         return 0
 
-def f(n, g, h, a):
-    return (h + g*n + a*(n**3))*(n-1)
+def f(n, g, h, a, b):
+    return (h + g*n + a*(n**3) + b*(n**5))*(n-1)
 
 def spectrumCompareWithNoScatter(numericalSpectrum, N):
     LMax = numericalSpectrum[-1][0] + 1
@@ -122,43 +122,64 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
 def pow(x, a, b):
     return b*x**a
 
+def bn(n, p0, p1, p2):
+    return (n-1)*(p0 + p1*n + p2*n**2)
+
 def scaleTest(spectra, f):
     Ns = []
-    hs = []
-    gs = []
-    As = []
-    asScaled = []
+    fs = [[] for i in range(9)]
     for N in range(150, 340):
         spectrum = spectra[(N, 11)]
         E = findDispersion(spectrum, 11)
         Ls = [L for L in E if L > 0]
         EAbs = [-E[L] for L in E if L > 0]
-        g, h, a = scipy.optimize.curve_fit(f, Ls, EAbs)[0]
         Ns.append(N)
-        hs.append(h)
-        gs.append(g)
-        As.append(a)
-        if N == 250:
-            ax = pyplot.subplot(1,3,1)
-            pyplot.plot(Ls, EAbs, 'ko')
-            pyplot.plot(Ls, [f(L, g, h, a) for L in Ls])
+        for i in range(9):
+            fs[i].append(EAbs[i+1])
 
-    a, b = scipy.optimize.curve_fit(pow, Ns, As)[0]
-    c, d = scipy.optimize.curve_fit(pow, Ns, gs)[0]
-    e, f = scipy.optimize.curve_fit(pow, Ns, hs)[0]
-    print(a, b)
-    print(c, d)
-    print(e, f)
+    bs = []
+    a2 = []
+    bErrors = []
+    aErrors = []
+    for i in range(9):
+        (a, b), M = scipy.optimize.curve_fit(pow, Ns, fs[i])
+        print(a,b)
+        bs.append(b)
+        a2.append(a)
+        bErrors.append(math.sqrt(M[1][1]))
+        aErrors.append(math.sqrt(M[0][0]))
 
-    pyplot.subplot(1,3,2)
+    ns = [i+2 for i in range(9)]
+    for i in range(9):
+        print(bErrors[i], aErrors[i])
+
+    ax = pyplot.subplot(1,2,1)
+    ax.tick_params(labelsize = 15)
+    pyplot.title("m=1 g(2) vs N", fontsize = 22)
     pyplot.xlabel("N", fontsize = 20)
-    pyplot.ylabel("g")
-    pyplot.plot(Ns, gs)
+    pyplot.ylabel("$g(2,N)$", fontsize = 20)
+    pyplot.plot([Ns[i] for i in range(0, len(Ns), 15)], [fs[0][i] for i in range(0, len(fs[0]), 15)], 'ko', label = "NUMERICAL")
+    pyplot.plot(Ns, [pow(x, a2[0], bs[0]) for x in Ns], label = "$g(2,N) = b(2)N^{a(2)}$ FIT")
+    pyplot.text(0.98, 0.75, "a(2) = " + str(round(a2[0], 4)) + "\n" + "b(2) = " + str(round(bs[0], 3)), horizontalalignment='right', verticalalignment='center', fontsize=20, transform=ax.transAxes)
+    pyplot.legend(fontsize = 20)
 
-    pyplot.subplot(1,3,3)
-    pyplot.xlabel("N", fontsize = 20)
-    pyplot.ylabel("h")
-    pyplot.plot(Ns, hs)
+    ns = [1] + ns
+    bs = [0] + bs
+
+    (p0, p1, p2), M = scipy.optimize.curve_fit(bn, ns, bs)
+    print("")
+    print(p0, math.sqrt(M[0][0]))
+    print(p1, math.sqrt(M[1][1]))
+    print(p2, math.sqrt(M[2][2]))
+    print("")
+    ax2 = pyplot.subplot(1,2,2)
+    ax2.tick_params(labelsize = 15)
+    pyplot.title("m = 1 b(n) Data & Fit", fontsize = 22)
+    pyplot.xlabel("n", fontsize = 20)
+    pyplot.ylabel("$b(n)$", fontsize = 20)
+    pyplot.plot(ns, bs, 'ko', label = "NUMERICAL")
+    pyplot.plot(ns, [bn(n, p0, p1, p2) for n in ns], label = "POLYNOMIAL FIT")
+    pyplot.legend(fontsize = 20)
 
     pyplot.show()
 
@@ -205,6 +226,28 @@ def peakAnalysis():
     pyplot.plot(Ns, LPeaks)
     pyplot.show()
 
+def differenceGraphPlotter():
+    differenceData = []
+    Ns = [30, 45, 60, 90, 120]
+    for N in Ns:
+        spectrum = spectra[(N, 15)]
+        E = findDispersion(spectrum, 15)
+        Ls = [L for L in E if L > 0]
+        EAbs = [-E[L] for L in E if L > 0]
+        EDiff2 = [math.sqrt(N)*(EAbs[i] - EAbs[i-1]) for i in range(1, len(Ls))]
+        LDiff2 = [Ls[i] for i in range(1, len(Ls))]
+        differenceData.append(EDiff2)
+
+    pyplot.xlim((2, 16.7))
+    pyplot.title("$h(n)$ for a range of $N$", fontsize = 20)
+    pyplot.tick_params(labelsize = 12)
+    pyplot.xlabel("$n$", fontsize = 18)
+    pyplot.ylabel("$h(n)$", fontsize = 18)
+    for i in range(len(Ns)):
+        pyplot.plot(LDiff2, differenceData[i])
+        pyplot.text(LDiff2[-1] + 0.25, differenceData[i][-1], "$N = " + str(Ns[i]) + "$", horizontalalignment='left', verticalalignment='center', fontsize=15)
+    pyplot.show()
+
 spectraFile = open("BigSpectraCollection.p", 'rb')
 spectra = pickle.load(spectraFile)
 spectraFile.close()
@@ -228,9 +271,10 @@ while keepGoing:
 
 IQHEDiag.dumpRequest()
 """
-spectrumCompareWithNoScatter(spectraFrac[(8, 6)], 8)
+#spectrumCompareWithNoScatter(spectraFrac[(8, 6)], 8)
 #scaleTest(spectra, f)
 #peakAnalysis()
+differenceGraphPlotter()
 #print(spectraFrac)
 #for N in range(200, 301):
 
