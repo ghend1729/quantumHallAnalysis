@@ -38,7 +38,7 @@ def integrateTest(theLimit, r, r0):
     return integrate.quad(lambda x: besselIntegrand(r, r0, x), 0, theLimit, limit = 1000)
 
 def besselIntegrandReversed(r, k, r0, N):
-    return r*special.j0(k*r)*chargeDistroExact(r*r0, N)
+    return r*special.j0(k*r)*chargeDistro(r*r0, N)
 
 def kIntegrand(r0, k, N):
     return -2*math.pi*k*special.j1(k)*integrate.quad(lambda r: besselIntegrandReversed(r, k, r0, N), 0, numpy.inf, limit = 1000)[0]
@@ -87,12 +87,13 @@ def differentiator3(r0, N):
 def spectrumFitter(spectrum, N):
     LMax = spectrum[-1][0] + 1
     E = ScatteringTesting.findDispersion(spectrum, LMax)
-    EAbs = [-E[L] for L in E]
+    EAbs = [-E[L] for L in E if L > 0]
     Ls = [L for L in E]
     R = math.sqrt(2*(N))
     h = -differentiator3(R, N)/R
-    p = numpy.polyfit(Ls[5:], EAbs[5:], 1)
-    print(h/p[0])
+    p = (EAbs[13] - EAbs[0])/13
+    print(N, p/h)
+    """
     predE = [L*h for L in Ls]
     predE2 = [p[0]*L for L in Ls]
     pyplot.xlabel("n", fontsize = 18)
@@ -101,7 +102,9 @@ def spectrumFitter(spectrum, N):
     pyplot.plot(Ls, predE)
     pyplot.plot(Ls, predE2)
     pyplot.show()
+    """
+for N in [30, 60, 90]:
+    spectrumFitter(ScatteringTesting.spectra[(N, 15)], N)
 
 
-spectrumFitter(ScatteringTesting.spectra[(40, 11)], 40)
 #plotPotential()
