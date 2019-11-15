@@ -24,6 +24,7 @@ def stateEnergyFromDispersion(p, E):
     return sum([E[L] for L in p])
 
 def predictSpectrum(E, LMax, E_0):
+    print(E)
     result = []
     for L in range(LMax):
         partitions = usefulTools.generatePartitions(L)
@@ -61,7 +62,7 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     print(CFTSpectrum)
     L1 = [item[0] for item in numericalSpectrum if item[0] < 8]
     E1 = [item[1] for item in numericalSpectrum if item[0] < 8]
-    U = 2.1*(max(E1) - min(E1))/(LMax - 1)
+    U = 0*(max(E1) - min(E1))/(LMax - 1)
     print("U = " + str(U))
     E1 = [item[1] + U*item[0] for item in numericalSpectrum if item[0] < 8]
     L2 = [item[0] for item in CFTSpectrum if item[0] < 8]
@@ -70,15 +71,14 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     EAbs = [-E[L] for L in E if L > 0]
     LFit = [L for L in E if L > 0]
     EFit = [-E[L] for L in E if L > 0]
-    """
-    g, h, a = scipy.optimize.curve_fit(f, LFit, EFit)[0]
-    print(g, h, a)
-    EPred = [f(L, g, h, a) for L in Ls]
-    EDiff = [(EAbs[i] - EPred[i])/max(EAbs) for i in range(len(EAbs))]
+    
     EDiff2 = [EAbs[i] - EAbs[i-1] for i in range(1, len(Ls))]
     LDiff2 = [Ls[i] for i in range(1, len(Ls))]
-    findPeak(LDiff2, EDiff2)
 
+    print("")
+    for x in numericalSpectrum:
+        print([x[0], E_0 - x[1]])
+    """
     Ns = []
     errorsList = []
 
@@ -99,26 +99,23 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     print(a, b)
     print(aError, bError)
     """
-    ax = pyplot.subplot(111)
+    ax = pyplot.subplot(121)
     ax.tick_params(labelsize = 15)
-    pyplot.title("$N = " + str(N) + "$ $m=3$ Free Boson Test", fontsize = 22)
+    pyplot.title("$N = " + str(N) + "$\alpha = 0.1$ Free Boson Test", fontsize = 22)
     pyplot.xlabel("$\Delta L$", fontsize = 20)
     pyplot.ylabel("$\Delta E/(q^2/4\pi\epsilon_0l_B)$", fontsize = 20)
     pyplot.plot(L1, E1, 'ko', label = "$\delta\hat{H}$")
     pyplot.hlines(E2, [i - 0.3 for i in L2], [i + 0.3 for i in L2], label = "$\hat{H}$")
     pyplot.text(0.98, 0.02, "$U_0 = " + str(round(U/2, 4)) + "q^2/4\pi\epsilon_0l_B^3$", horizontalalignment='right', fontsize = 20, transform=ax.transAxes)
     pyplot.legend(fontsize = 22)
-    """
+    
     ax2 = pyplot.subplot(122)
     ax2.tick_params(labelsize=15)
-    pyplot.title("$m = 1$ Error vs N", fontsize=25)
-    pyplot.xlabel("N", fontsize=22)
-    pyplot.ylabel("ERROR(%)", fontsize = 22)
-    pyplot.plot(Ns, errorsList, 'ko', label = "ACTUAL ERROR")
-    pyplot.plot(NsPred, errorListPred, label = "ERROR = $bN^a$ FIT")
-    pyplot.text(0.98, 0.75, "a = " + str(round(a, 3)) + " ± {0:.3f}".format(aError) + "\n" + "b = " + str(round(b, 2)) + " ± {0:.1f}".format(bError), horizontalalignment='right', verticalalignment='center', fontsize=22, transform=ax2.transAxes)
-    pyplot.legend(fontsize = 22)
-    """
+    pyplot.title("Mode energy vs n", fontsize=25)
+    pyplot.xlabel("n", fontsize=22)
+    pyplot.ylabel("E", fontsize = 22)
+    pyplot.plot(LDiff2, EDiff2, label = "ACTUAL ERROR")
+    
     pyplot.show()
 
 def pow(x, a, b):
@@ -281,12 +278,13 @@ IQHEDiag.dumpRequest()
 #for N in range(200, 301):
 
 """
-spectrum = FQHEDiag.findEnergiesForRangeOfL(6, 8, 3, 1, 0)
+spectrum = FQHEDiag.findEnergiesForRangeOfL(5, 8, 3, 1, 0)
 spectraFrac[(8, 6)] = spectrum
 spectraFile2 = open("FractionalSprectra.p", 'wb')
 pickle.dump(spectraFrac, spectraFile2)
 spectraFile2.close()
 """
 
-spectrum = IQHEDiag.findEnergiesForRangeOfL(50, 8, 1, 0)
-spectrumCompareWithNoScatter(spectrum, 50)
+
+spectrum = IQHEDiag.findEnergiesForRangeOfL(200, 5, 1, 0)
+spectrumCompareWithNoScatter(spectrum, 200)

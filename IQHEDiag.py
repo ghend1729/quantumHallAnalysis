@@ -12,6 +12,7 @@ import matplotlib
 import matplotlib.pyplot as pyplot
 import NBodyBasisMatrixElementCalc
 from usefulTools import generatePartitions
+import slatToSymBasisTrans
 
 def dumpRequest():
     """
@@ -31,7 +32,8 @@ def generateStates(L, N):
         for i in range(y):
             tempState[N-1-i] = tempState[N-1-i] + x[y-1-i]
         states.append(tempState)
-    return states
+    X = slatToSymBasisTrans.basisConversion(states, partitions, N)
+    return states, X
 
 def diagonaliseLLevel(L,N, magneticLength):
     """
@@ -40,19 +42,25 @@ def diagonaliseLLevel(L,N, magneticLength):
     to the energy levels (when we have N particles).
     Returns these energies as a list.
     """
-    states = generateStates(L,N)
+    states, X = generateStates(L,N)
     numOfStates = len(states)
 
     halfMatrix = [[NBodyBasisMatrixElementCalc.NElectronMatrixElement(states[i], states[j], magneticLength) for j in range(i+1)] for i in range(numOfStates)]
     #halfMatrix = [[longFormMatrixElement(magneticLength, states[i], states[j]) for j in range(i+1)] for i in range(numOfStates)]
     transposedHalfMatrix = [[halfMatrix[j][i] for j in range(i+1, numOfStates)] for i in range(numOfStates - 1)]
-    print(transposedHalfMatrix)
+    #print(transposedHalfMatrix)
     fullMatrix = [halfMatrix[i] + transposedHalfMatrix[i] for i in range(numOfStates - 1)]
     fullMatrix.append(halfMatrix[numOfStates-1])
     pertubationMatrix = mpmath.mp.matrix(fullMatrix)
-    print(pertubationMatrix)
+    #print(pertubationMatrix)
     print("Diagonalising L = " + str(L) + " level with N = " + str(N))
-    energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True, overwrite_a = True)
+    energies, Q = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = False, overwrite_a = True)
+    print("")
+    H = [[float(mpmath.nstr(i)) for i in x] for x in fullMatrix]
+    Y = numpy.matmul(X, H)
+    Z = numpy.matmul(Y, numpy.linalg.inv(X))
+    print(Z)
+    print("")
     return [float(mpmath.nstr(x, n=20)) for x in energies]
 
 
@@ -78,3 +86,4 @@ def plotEnergies(N, LMax, magneticLength, U0):
     pyplot.ylabel("E/(e^2/epsilon0/magnetic length/(4*pi))")
     pyplot.plot(L, E, 'bo')
     pyplot.show()
+

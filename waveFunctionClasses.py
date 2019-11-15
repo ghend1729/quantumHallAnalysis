@@ -44,13 +44,14 @@ class waveFunction:
     This class also allows for addition, subtraction, multiplication by scalars and inner products
     between states.
     """
-    def __init__(self, statesDecomp, magneticLength, fermion=True, convertToNormalisedBasis=False, doNormalise=False):
+    def __init__(self, statesDecomp, magneticLength, fermion=True, convertToNormalisedBasis=False, doNormalise=False, zeroVec=False):
         """
         Takes a slater decompoision of a state and creates the waveFunction object from that.
         """
         self.states = copy.deepcopy(statesDecomp)
         self.magneticLength = magneticLength
         self.fermion = fermion
+        self.isZeroVec = zeroVec
         if convertToNormalisedBasis:
             print("working")
             for i in range(len(self.states)):
@@ -62,21 +63,29 @@ class waveFunction:
         """
         Allows addition of waveFunctions.
         """
-        answerList = []
-        for state in otherWaveFunction.states:
-            correspondingState = next((s for s in self.states if s[1] == state[1]), [0, state[1]])
-            answerList.append([correspondingState[0] + state[0], state[1]])
-        NBodyKetsInOtherWave = [s[1] for s in otherWaveFunction.states]
-        leftOverList = [s for s in self.states if not (s[1] in NBodyKetsInOtherWave)]
-        answerList = answerList + leftOverList
-        return waveFunction(answerList, self.magneticLength, fermion=self.fermion)
+        if self.isZeroVec:
+            return otherWaveFunction
+        elif otherWaveFunction.isZeroVec:
+            return self
+        else:
+            answerList = []
+            for state in otherWaveFunction.states:
+                correspondingState = next((s for s in self.states if s[1] == state[1]), [0, state[1]])
+                answerList.append([correspondingState[0] + state[0], state[1]])
+            NBodyKetsInOtherWave = [s[1] for s in otherWaveFunction.states]
+            leftOverList = [s for s in self.states if not (s[1] in NBodyKetsInOtherWave)]
+            answerList = answerList + leftOverList
+            return waveFunction(answerList, self.magneticLength, fermion=self.fermion)
 
     def __mul__(self, otherNum):
         """
         Allows for multiplication by a scalar.
         """
-        answerList = [[s[0]*otherNum, s[1]] for s in self.states]
-        return waveFunction(answerList, self.magneticLength, fermion=self.fermion)
+        if self.isZeroVec:
+            return self
+        else:
+            answerList = [[s[0]*otherNum, s[1]] for s in self.states]
+            return waveFunction(answerList, self.magneticLength, fermion=self.fermion)
 
     def __sub__(self, otherWaveFunction):
         """
@@ -88,17 +97,25 @@ class waveFunction:
         """
         This computes the inner products of two waveFunctions.
         """
-        answer = 0
-        for state in otherWaveFunction.states:
-            correspondingComponent = next((s[0] for s in self.states if s[1] == state[1]), 0)
-            answer += state[0]*correspondingComponent
-        return answer
+        if self.isZeroVec:
+            return 0
+        elif otherWaveFunction.isZeroVec:
+            return 0
+        else: 
+            answer = 0
+            for state in otherWaveFunction.states:
+                correspondingComponent = next((s[0] for s in self.states if s[1] == state[1]), 0)
+                answer += state[0]*correspondingComponent
+            return answer
 
     def __str__(self):
         """
         Allows one to display the slater decomp of the state.
         """
-        return str(self.states)
+        if self.isZeroVec:
+            return "0"
+        else:
+            return str(self.states)
 
     def __repr__(self):
         """
@@ -110,9 +127,10 @@ class waveFunction:
         """
         Normalises the current waveFunction.
         """
-        sizeOfState = (self | self)
-        normConst = 1/(math.sqrt(sizeOfState))
-        self.states = [[s[0]*normConst, s[1]] for s in self.states]
+        if not self.isZeroVec:
+            sizeOfState = (self | self)
+            normConst = 1/(math.sqrt(sizeOfState))
+            self.states = [[s[0]*normConst, s[1]] for s in self.states]
 
 def waveFuncMatrixElement(state1, state2):
     """
