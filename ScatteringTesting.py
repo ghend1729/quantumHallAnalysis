@@ -255,21 +255,26 @@ spectraFile2 = open("FractionalSprectra.p", 'rb')
 spectraFrac = pickle.load(spectraFile2)
 spectraFile2.close()
 """
-N = 200
+N = 100
+Ns = []
+offDiags = []
 keepGoing = True
 while keepGoing:
-    x = IQHEDiag.findEnergiesForRangeOfL(N, 11, 1, 0)
-    y = spectra[(N,11)]
-    for i in range(len(x)):
-        if not (x[i][1] - y[i][1] == 0.0):
-            keepGoing = False
-            print("Error!!!")
+    x, Zs = IQHEDiag.findEnergiesForRangeOfL(N, 4, 1, 0)
+    Ns += [N]
+    offDiags += [Zs[3][2][2]]
     N += 1
-    if N == 340:
+    if N == 350:
         keepGoing = False
 
-IQHEDiag.dumpRequest()
-"""
+(a, b), M = scipy.optimize.curve_fit(pow, Ns, offDiags)
+print(a)
+print(b)
+pyplot.plot(Ns, offDiags)
+pyplot.show()
+
+#IQHEDiag.dumpRequest()
+
 #spectrumCompareWithNoScatter(spectraFrac[(8, 6)], 8)
 #scaleTest(spectra, f)
 #peakAnalysis()
@@ -277,7 +282,7 @@ IQHEDiag.dumpRequest()
 #print(spectraFrac)
 #for N in range(200, 301):
 
-"""
+
 spectrum = FQHEDiag.findEnergiesForRangeOfL(5, 8, 3, 1, 0)
 spectraFrac[(8, 6)] = spectrum
 spectraFile2 = open("FractionalSprectra.p", 'wb')
@@ -286,5 +291,5 @@ spectraFile2.close()
 """
 
 
-spectrum = IQHEDiag.findEnergiesForRangeOfL(200, 5, 1, 0)
-spectrumCompareWithNoScatter(spectrum, 200)
+spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(30, 5, 1, 0)
+spectrumCompareWithNoScatter(spectrum, 30)

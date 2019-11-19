@@ -20,7 +20,7 @@ def S_kSingleSlat(SlaterDeterminent, k):
             newSlat = sorted([m+k] + x)
             NumFactor = ((-1)**(SlaterDeterminent.index(m) + newSlat.index(m+k)))*math.sqrt(math.factorial(m+k)/math.factorial(m))
             answer = answer + waveFunctionClasses.waveFunction([[NumFactor, newSlat]], 1)
-    return answer*(2**k)
+    return answer*(2**(k/2))
 
 def S_k(waveFunc, k):
     answer = waveFunctionClasses.waveFunction(0,1,zeroVec=True)

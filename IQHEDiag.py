@@ -25,6 +25,7 @@ def generateStates(L, N):
     Generate a slater basis of states for angular momentum level L above ground.
     """
     partitions = [item for item in generatePartitions(L) if len(item) <= N]
+    print(partitions)
     states = []
     for x in partitions:
         tempState = [i for i in range(N)]
@@ -56,12 +57,16 @@ def diagonaliseLLevel(L,N, magneticLength):
     print("Diagonalising L = " + str(L) + " level with N = " + str(N))
     energies, Q = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = False, overwrite_a = True)
     print("")
-    H = [[float(mpmath.nstr(i)) for i in x] for x in fullMatrix]
+    EnergiesFloat = [float(mpmath.nstr(x, n=20)) for x in energies]
+    E_0 = max(EnergiesFloat)
+    H = [[float(mpmath.nstr(i, n=20)) for i in x] for x in fullMatrix]
     Y = numpy.matmul(X, H)
     Z = numpy.matmul(Y, numpy.linalg.inv(X))
+    for i in range(len(EnergiesFloat)):
+        Z[i][i] = Z[i][i] - E_0
     print(Z)
     print("")
-    return [float(mpmath.nstr(x, n=20)) for x in energies]
+    return EnergiesFloat, Z
 
 
 def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):
@@ -72,10 +77,13 @@ def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):
     [angular momentum above Laughlin state, energy above Laughlin state]
     """
     finalList = []
+    Zs = []
     groundConfinementEnergy = alpha*N*(N-1)/2
     for L in range(LMax):
-        finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in diagonaliseLLevel(L, N, magneticLength)]
-    return finalList
+        Es, Z = diagonaliseLLevel(L, N, magneticLength)
+        finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in Es]
+        Zs += [Z]
+    return finalList, Zs
 
 def plotEnergies(N, LMax, magneticLength, U0):
     alpha = U0/N
