@@ -19,10 +19,11 @@ import matplotlib.pyplot as pyplot
 from CoulombMatrixFunctions import *
 import potentials
 import haldanePotentials
+import HaldanePseudopotentials
 
 mpmath.mp.dps = 20
 #Set mpmath percision
-useHaldane = True
+useHaldane = False
 #indicate to wether to use Haldane pseudo-potentials. If this is false the coulomb matrix elements
 #matrixElementC are used.
 V = potentials.longRange
@@ -60,7 +61,7 @@ def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
         result = matrixElementMemory[(m1, m2, m1Prime, m2Prime)]
     else:
         if useHaldane:
-            result = haldanePotentials.haldaneMatrixElement(m1Prime, m2Prime, m1, m2, magneticLength, V)
+            result = HaldanePseudopotentials.potential(m1Prime, m2Prime, m1, m2)
         else:
             result = matrixElementC(magneticLength, m1Prime, m2Prime, m1, m2)
         matrixElementMemory[(m1Prime, m2Prime, m1, m2)] = result

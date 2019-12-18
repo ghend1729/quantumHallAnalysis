@@ -291,5 +291,5 @@ spectraFile2.close()
 """
 
 
-spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(30, 5, 1, 0)
-spectrumCompareWithNoScatter(spectrum, 30)
+spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(50, 5, 1, 0)
+spectrumCompareWithNoScatter(spectrum, 50)
