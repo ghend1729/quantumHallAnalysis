@@ -290,6 +290,6 @@ pickle.dump(spectraFrac, spectraFile2)
 spectraFile2.close()
 """
 
-
-spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(50, 5, 1, 0)
-spectrumCompareWithNoScatter(spectrum, 50)
+for N in range(30, 121):
+    spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(N, 5, 1, 0)
+spectrumCompareWithNoScatter(spectrum, 120)

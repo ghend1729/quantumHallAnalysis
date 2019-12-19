@@ -35,7 +35,7 @@ def coulomb(m, magneticLength):
 
 def longRange(m, magneticLength):
     alpha = 0.001
-    return 2*math.pi*magneticLength*(2*magneticLength)**(2*m+1-alpha)*scipy.special.gamma(m+1-(alpha/2))/norm2(m, magneticLength*math.sqrt(2))
+    return 2*math.pi*magneticLength*(2*magneticLength)**(2*m+1-alpha)*mpmath.gamma(m+1-(alpha/2))/norm2(m, magneticLength*math.sqrt(2))
 """
 y = [1-longRange(i, 1)/norm2(i, math.sqrt(2)) for i in range(30)]
 x = [i for i in range(30)]

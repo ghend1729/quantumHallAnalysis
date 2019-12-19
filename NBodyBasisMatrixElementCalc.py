@@ -23,7 +23,7 @@ import HaldanePseudopotentials
 
 mpmath.mp.dps = 20
 #Set mpmath percision
-useHaldane = False
+useHaldane = True
 #indicate to wether to use Haldane pseudo-potentials. If this is false the coulomb matrix elements
 #matrixElementC are used.
 V = potentials.longRange
