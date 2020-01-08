@@ -45,4 +45,4 @@ def norm2(n, magneticLength):
     """
     Computes <m|m> where <z|m> = z^m*usual exp factor.
     """
-    return math.pi*math.factorial(n)*(2**(n+1))*magneticLength**(2*(n+1))
+    return math.pi*mpmath.factorial(n)*(2**(n+1))*magneticLength**(2*(n+1))

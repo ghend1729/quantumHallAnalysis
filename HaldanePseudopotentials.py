@@ -7,7 +7,7 @@ import potentials
 
 useMpmath = True
 
-mpmath.mp.dps = 30
+mpmath.mp.dps = 20
 
 potentialParameterFunction = potentials.exponentailRepulsion
 
@@ -24,6 +24,10 @@ def V(m):
 def nCr(n, r):
     return math.factorial(n)//math.factorial(r)//math.factorial(n-r)
 
+def nCrMP(n, r):
+    f = mpmath.factorial
+    return f(n)/f(r)/f(n-r)
+
 def projectToRelativeCoordinateBasis_NumpyVersion(r, s, m, M):
     sumRange = range(max([0, r - M]), min([r, m]) + 1)
     x = math.factorial(r)/math.factorial(m)
@@ -34,11 +38,11 @@ def projectToRelativeCoordinateBasis_NumpyVersion(r, s, m, M):
 
 def projectToRelativeCoordinateBasis_mpmathVersion(r, s, m, M):
     sumRange = range(max([0, r - M]), min([r, m]) + 1)
-    x = math.factorial(r)/math.factorial(m)
-    y = math.factorial(s)/math.factorial(M)
+    x = mpmath.factorial(r)/mpmath.factorial(m)
+    y = mpmath.factorial(s)/mpmath.factorial(M)
     z = 2**(m+M)
     upFrontFactor = mpmath.sqrt(x*y/z)
-    return sum([upFrontFactor*nCr(m, a)*nCr(M, r - a)*((-1)**a) for a in sumRange])
+    return sum([upFrontFactor*nCrMP(m, a)*nCrMP(M, r - a)*((-1)**a) for a in sumRange])
 
 def projectToRelativeCoordinateBasis(r, s, m, M):
     if useMpmath:
@@ -48,7 +52,7 @@ def projectToRelativeCoordinateBasis(r, s, m, M):
 
 def potential(r, s, t, u):
     if r + s == t + u:
-        sumRange = range(r + s + 1)
+        sumRange = range(1, r + s + 1, 2)
         P = projectToRelativeCoordinateBasis
         return sum([P(r, s, m, r + s - m)*V(m)*P(t, u, m, t + u - m) for m in sumRange])
     else:
