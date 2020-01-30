@@ -46,6 +46,9 @@ def spectrumCompare(numericalSpectrum):
     LMax = numericalSpectrum[-1][0] + 1
     print(numericalSpectrum)
     E_0, g, h_22, h_33 = extractParameters(numericalSpectrum)
+    print(g)
+    print(h_22)
+    print(h_33)
     CFTSpectrum = calcPredictedSpectrum(LMax, g, h_22, h_33, E_0)
     print(CFTSpectrum)
     L1 = [item[0] for item in numericalSpectrum]
@@ -61,5 +64,5 @@ def spectrumCompare(numericalSpectrum):
     pyplot.hlines(E2, [i - 0.2 for i in L2], [i + 0.2 for i in L2])
     pyplot.show()
 
-numericalSpectrum = IQHEDiag.findEnergiesForRangeOfL(50, 8  , 1, 0)
+numericalSpectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(40, 7, 1, 0)
 spectrumCompare(numericalSpectrum)

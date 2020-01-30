@@ -14,6 +14,8 @@ import NBodyBasisMatrixElementCalc
 from usefulTools import generatePartitions
 import slatToSymBasisTrans
 
+addBackgroundCharge = True
+
 def dumpRequest():
     """
     Save the matrix element memeroy.
@@ -33,7 +35,8 @@ def generateStates(L, N):
         for i in range(y):
             tempState[N-1-i] = tempState[N-1-i] + x[y-1-i]
         states.append(tempState)
-    X = slatToSymBasisTrans.basisConversion(states, partitions, N)
+    #X = slatToSymBasisTrans.basisConversion(states, partitions, N)
+    X = 0
     return states, X
 
 def diagonaliseLLevel(L,N, magneticLength):
@@ -52,19 +55,27 @@ def diagonaliseLLevel(L,N, magneticLength):
     #print(transposedHalfMatrix)
     fullMatrix = [halfMatrix[i] + transposedHalfMatrix[i] for i in range(numOfStates - 1)]
     fullMatrix.append(halfMatrix[numOfStates-1])
+
+    if addBackgroundCharge:
+        for i in range(len(states)):
+            fullMatrix[i][i] = fullMatrix[i][i] - backgroundCharge(states[i], magneticLength)
+
     pertubationMatrix = mpmath.mp.matrix(fullMatrix)
     #print(pertubationMatrix)
     print("Diagonalising L = " + str(L) + " level with N = " + str(N))
-    energies, Q = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = False, overwrite_a = False)
+    energies = mpmath.mp.eigsy(pertubationMatrix, eigvals_only = True, overwrite_a = False)
     print("")
     EnergiesFloat = [float(mpmath.nstr(x, n=20)) for x in energies]
     E_0 = max(EnergiesFloat)
+    """
     H = [[float(mpmath.nstr(i, n=20)) for i in x] for x in fullMatrix]
     Y = numpy.matmul(X, H)
     Z = numpy.matmul(Y, numpy.linalg.inv(X))
     for i in range(len(EnergiesFloat)):
         Z[i][i] = Z[i][i] - E_0
     print(Z)
+    """
+    Z = 0
 
     print("")
     print(EnergiesFloat)
@@ -87,6 +98,7 @@ def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):
         Es, Z = diagonaliseLLevel(L, N, magneticLength)
         finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in Es]
         Zs += [Z]
+    dumpRequest()
     return finalList, Zs
 
 def plotEnergies(N, LMax, magneticLength, U0):
@@ -99,3 +111,20 @@ def plotEnergies(N, LMax, magneticLength, U0):
     pyplot.plot(L, E, 'bo')
     pyplot.show()
 
+def backgroundCharge(state, magneticLength):
+    f = NBodyBasisMatrixElementCalc.matrixElementC
+    mems = NBodyBasisMatrixElementCalc.matrixElementMemory
+    groundState = [i for i in range(len(state))]
+    energy = 0
+    x = 0
+    for m in state:
+        for n in groundState:
+            if (m, n, m, n) in mems:
+                x = mems[(m, n, m, n)]
+            elif (n, m, n, m) in mems:
+                x = mems[(n, m, n, m)]
+            else:
+                x = f(magneticLength, m, n, m, n)
+                mems[(m, n, m, n)] = x
+            energy += x
+    return energy

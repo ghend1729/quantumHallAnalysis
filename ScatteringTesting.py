@@ -12,10 +12,10 @@ import scipy.optimize
 import pickle
 
 def findDispersion(spectrum, LMax):
-    E = {0 : 0, 1 : 0}
+    E = {0 : 0}
     E_0 = spectrum[0][1]
-    energyIndex = 2
-    for L in range(2,LMax):
+    energyIndex = 1
+    for L in range(1,LMax):
         E[L] = spectrum[energyIndex][1] - E_0
         energyIndex += len(usefulTools.generatePartitions(L))
     return E
@@ -69,8 +69,14 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     E2 = [item[1] + U*item[0] for item in CFTSpectrum if item[0] < 8]
     Ls = [L for L in E if L > 0]
     EAbs = [-E[L] for L in E if L > 0]
-    LFit = [L for L in E if L > 0]
-    EFit = [-E[L] for L in E if L > 0]
+    Ls = [L for L in E if L > 0]
+    Es = [E[L] for L in E if L > 0]
+    LFit = [L for L in E if L > 0 and L < 3]
+    EFit = [scipy.exp(E[L]) for L in E if L > 0 and L < 3]
+    
+    a, b = scipy.optimize.curve_fit(expForm, LFit, EFit)[0]
+
+    EPredicted = [logDisp(n, a, b) for n in Ls]
     
     EDiff2 = [EAbs[i] - EAbs[i-1] for i in range(1, len(Ls))]
     LDiff2 = [Ls[i] for i in range(1, len(Ls))]
@@ -114,7 +120,8 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     pyplot.title("Mode energy vs n", fontsize=25)
     pyplot.xlabel("n", fontsize=22)
     pyplot.ylabel("E", fontsize = 22)
-    pyplot.plot(LDiff2, EDiff2, label = "ACTUAL ERROR")
+    pyplot.plot(Ls, Es, 'ko', label = "ACTUAL ERROR")
+    pyplot.plot(Ls, EPredicted)
     
     pyplot.show()
 
@@ -123,6 +130,12 @@ def pow(x, a, b):
 
 def bn(n, p0, p1, p2):
     return (n-1)*(p0 + p1*n + p2*n**2)
+
+def logDisp(n, a, b):
+    return a*n*numpy.log(b*n)
+
+def expForm(n, a, b):
+    return numpy.power(b*n, a*n)
 
 def scaleTest(spectra, f):
     Ns = []
@@ -227,17 +240,18 @@ def peakAnalysis():
 
 def differenceGraphPlotter():
     differenceData = []
-    Ns = [30, 45, 60, 90, 120]
+    Ns = [20, 40, 60]
+    alpha = 0.5
     for N in Ns:
-        spectrum = spectra[(N, 15)]
-        E = findDispersion(spectrum, 15)
+        spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(N, 10, 1, 0)
+        E = findDispersion(spectrum, 10)
         Ls = [L for L in E if L > 0]
         EAbs = [-E[L] for L in E if L > 0]
-        EDiff2 = [math.sqrt(N)*(EAbs[i] - EAbs[i-1]) for i in range(1, len(Ls))]
+        EDiff2 = [(math.sqrt(N)**alpha)*(EAbs[i] - EAbs[i-1]) for i in range(1, len(Ls))]
         LDiff2 = [Ls[i] for i in range(1, len(Ls))]
         differenceData.append(EDiff2)
 
-    pyplot.xlim((2, 16.7))
+    pyplot.xlim((2, 10))
     pyplot.title("$h(n)$ for a range of $N$", fontsize = 20)
     pyplot.tick_params(labelsize = 12)
     pyplot.xlabel("$n$", fontsize = 18)
@@ -289,7 +303,12 @@ spectraFile2 = open("FractionalSprectra.p", 'wb')
 pickle.dump(spectraFrac, spectraFile2)
 spectraFile2.close()
 """
-
+"""
 for N in range(115, 116):
     spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(N, 5, 1, 0)
 spectrumCompareWithNoScatter(spectrum, 115)
+differenceGraphPlotter()
+"""
+
+spectrum = IQHEDiag.findEnergiesForRangeOfL(150, 8, 1, 0)[0]
+spectrumCompareWithNoScatter(spectrum, 150)

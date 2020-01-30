@@ -9,7 +9,7 @@ useMpmath = True
 
 mpmath.mp.dps = 20
 
-potentialParameterFunction = potentials.exponentailRepulsion
+potentialParameterFunction = potentials.longRange
 
 VMemory = {}
 
@@ -34,7 +34,7 @@ def projectToRelativeCoordinateBasis_NumpyVersion(r, s, m, M):
     y = math.factorial(s)/math.factorial(M)
     z = 2**(m+M)
     upFrontFactor = math.sqrt(x*y/z)
-    return sum([upFrontFactor*nCr(m, a)*nCr(M, r - a)*((-1)**a) for a in sumRange])
+    return sum([upFrontFactor*nCr(m, a)*nCr(M, r - a)*((-1)**(m-a)) for a in sumRange])
 
 def projectToRelativeCoordinateBasis_mpmathVersion(r, s, m, M):
     sumRange = range(max([0, r - M]), min([r, m]) + 1)

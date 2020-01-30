@@ -23,10 +23,9 @@ import HaldanePseudopotentials
 
 mpmath.mp.dps = 20
 #Set mpmath percision
-useHaldane = True
+useHaldane = False
 #indicate to wether to use Haldane pseudo-potentials. If this is false the coulomb matrix elements
 #matrixElementC are used.
-V = potentials.longRange
 
 #All previously used matrix elements of the coulomb interaction have been stored to speed things up.
 #The next two functions loads and updates this file. dumpMatrixElements is triggered by a function IQHEDiag.
