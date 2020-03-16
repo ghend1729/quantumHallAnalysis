@@ -53,6 +53,9 @@ def delta(x):
 def f(n, g, h, a, b):
     return (h + g*n + a*(n**3) + b*(n**5))*(n-1)
 
+def testDispersion(n, a, b):
+    return a*n + b*n*2
+
 def spectrumCompareWithNoScatter(numericalSpectrum, N):
     LMax = numericalSpectrum[-1][0] + 1
     print(numericalSpectrum)
@@ -73,18 +76,23 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     Es = [E[L] for L in E if L > 0]
     LFit = [L for L in E if L > 0 and L < 3]
     EFit = [scipy.exp(E[L]) for L in E if L > 0 and L < 3]
+    """
+    x = Es[0]/Es[1]
+    b = 2**(2*x/(1-2*x))
+    a = Es[0]/numpy.log(b)
     
-    a, b = scipy.optimize.curve_fit(expForm, LFit, EFit)[0]
+    print("")
+    print(a)
+    print(b)
+    print("")
+
+    #a, b = scipy.optimize.curve_fit(expForm, LFit, EFit)
 
     EPredicted = [logDisp(n, a, b) for n in Ls]
     
     EDiff2 = [EAbs[i] - EAbs[i-1] for i in range(1, len(Ls))]
     LDiff2 = [Ls[i] for i in range(1, len(Ls))]
 
-    print("")
-    for x in numericalSpectrum:
-        print([x[0], E_0 - x[1]])
-    """
     Ns = []
     errorsList = []
 
@@ -105,6 +113,7 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     print(a, b)
     print(aError, bError)
     """
+    
     ax = pyplot.subplot(121)
     ax.tick_params(labelsize = 15)
     pyplot.title("$N = " + str(N) + "$\alpha = 0.1$ Free Boson Test", fontsize = 22)
@@ -121,12 +130,15 @@ def spectrumCompareWithNoScatter(numericalSpectrum, N):
     pyplot.xlabel("n", fontsize=22)
     pyplot.ylabel("E", fontsize = 22)
     pyplot.plot(Ls, Es, 'ko', label = "ACTUAL ERROR")
-    pyplot.plot(Ls, EPredicted)
+    #pyplot.plot(Ls, EPredicted)
     
     pyplot.show()
 
 def pow(x, a, b):
     return b*x**a
+
+def sqrtFit(x, a):
+    return a/(x**(0.5))
 
 def bn(n, p0, p1, p2):
     return (n-1)*(p0 + p1*n + p2*n**2)
@@ -240,16 +252,18 @@ def peakAnalysis():
 
 def differenceGraphPlotter():
     differenceData = []
-    Ns = [20, 40, 60]
-    alpha = 0.5
+    dispData = []
+    Ns = [30, 50, 80, 100, 200, 300, 400]
+    alpha = 1
     for N in Ns:
         spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(N, 10, 1, 0)
         E = findDispersion(spectrum, 10)
         Ls = [L for L in E if L > 0]
-        EAbs = [-E[L] for L in E if L > 0]
+        EAbs = [E[L] for L in E if L > 0]
         EDiff2 = [(math.sqrt(N)**alpha)*(EAbs[i] - EAbs[i-1]) for i in range(1, len(Ls))]
         LDiff2 = [Ls[i] for i in range(1, len(Ls))]
         differenceData.append(EDiff2)
+        dispData.append([x*math.sqrt(N) for x in EAbs])
 
     pyplot.xlim((2, 10))
     pyplot.title("$h(n)$ for a range of $N$", fontsize = 20)
@@ -257,10 +271,10 @@ def differenceGraphPlotter():
     pyplot.xlabel("$n$", fontsize = 18)
     pyplot.ylabel("$h(n)$", fontsize = 18)
     for i in range(len(Ns)):
-        pyplot.plot(LDiff2, differenceData[i])
-        pyplot.text(LDiff2[-1] + 0.25, differenceData[i][-1], "$N = " + str(Ns[i]) + "$", horizontalalignment='left', verticalalignment='center', fontsize=15)
+        pyplot.plot(Ls, dispData[i])
+        pyplot.text(Ls[-1] + 0.25, dispData[i][-1], "$N = " + str(Ns[i]) + "$", horizontalalignment='left', verticalalignment='center', fontsize=15)
     pyplot.show()
-
+"""
 spectraFile = open("BigSpectraCollection.p", 'rb')
 spectra = pickle.load(spectraFile)
 spectraFile.close()
@@ -268,7 +282,7 @@ spectraFile.close()
 spectraFile2 = open("FractionalSprectra.p", 'rb')
 spectraFrac = pickle.load(spectraFile2)
 spectraFile2.close()
-"""
+
 N = 100
 Ns = []
 offDiags = []
@@ -309,6 +323,28 @@ for N in range(115, 116):
 spectrumCompareWithNoScatter(spectrum, 115)
 differenceGraphPlotter()
 """
+"""
+As = []
+Bs = []
+Ns = []
+for N in range(300, 400, 10):
+    spectrum = IQHEDiag.findEnergiesForRangeOfL(N, 3, 1, 0)[0]
+    a, b = spectrumCompareWithNoScatter(spectrum, N)
+    As.append(-a)
+    Bs.append(b)
+    Ns.append(N)
+c, d = scipy.optimize.curve_fit(pow, Ns, As)[0]
+e, f = scipy.optimize.curve_fit(pow, Ns, Bs)[0]
+APred = [pow(N, c, d) for N in Ns]
+BPred = [pow(N, e, f) for N in Ns]
+print(c,d)
+print(e,f)
+pyplot.plot(Ns, As, 'ko')
+pyplot.plot(Ns, APred)
+pyplot.plot(Ns, Bs, 'ko')
+pyplot.plot(Ns, BPred)
+pyplot.show()
+"""
 
-spectrum = IQHEDiag.findEnergiesForRangeOfL(150, 8, 1, 0)[0]
-spectrumCompareWithNoScatter(spectrum, 150)
+spectrum, Zs = IQHEDiag.findEnergiesForRangeOfL(30, 5, 1, 0)
+spectrumCompareWithNoScatter(spectrum, 30)

@@ -21,7 +21,7 @@ import potentials
 import haldanePotentials
 import HaldanePseudopotentials
 
-mpmath.mp.dps = 20
+mpmath.mp.dps = 30
 #Set mpmath percision
 useHaldane = False
 #indicate to wether to use Haldane pseudo-potentials. If this is false the coulomb matrix elements
@@ -60,7 +60,7 @@ def matrixElement(magneticLength, m1Prime, m2Prime, m1, m2):
         result = matrixElementMemory[(m1, m2, m1Prime, m2Prime)]
     else:
         if useHaldane:
-            result = HaldanePseudopotentials.potential(m1Prime, m2Prime, m1, m2)
+            result = HaldanePseudopotentials.potential(magneticLength, m1Prime, m2Prime, m1, m2)
         else:
             result = matrixElementC(magneticLength, m1Prime, m2Prime, m1, m2)
         matrixElementMemory[(m1Prime, m2Prime, m1, m2)] = result

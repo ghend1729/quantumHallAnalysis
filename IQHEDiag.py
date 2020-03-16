@@ -98,7 +98,8 @@ def findEnergiesForRangeOfL(N, LMax, magneticLength, alpha):
         Es, Z = diagonaliseLLevel(L, N, magneticLength)
         finalList += [[L, E + groundConfinementEnergy + alpha*L] for E in Es]
         Zs += [Z]
-    dumpRequest()
+    if not NBodyBasisMatrixElementCalc.useHaldane:
+        dumpRequest()
     return finalList, Zs
 
 def plotEnergies(N, LMax, magneticLength, U0):
@@ -112,7 +113,10 @@ def plotEnergies(N, LMax, magneticLength, U0):
     pyplot.show()
 
 def backgroundCharge(state, magneticLength):
-    f = NBodyBasisMatrixElementCalc.matrixElementC
+    if NBodyBasisMatrixElementCalc.useHaldane:
+        f = NBodyBasisMatrixElementCalc.HaldanePseudopotentials.potential
+    else:
+        f = NBodyBasisMatrixElementCalc.matrixElementC
     mems = NBodyBasisMatrixElementCalc.matrixElementMemory
     groundState = [i for i in range(len(state))]
     energy = 0

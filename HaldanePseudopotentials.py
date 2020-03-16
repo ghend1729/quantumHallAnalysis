@@ -7,7 +7,7 @@ import potentials
 
 useMpmath = True
 
-mpmath.mp.dps = 20
+mpmath.mp.dps = 30
 
 potentialParameterFunction = potentials.longRange
 
@@ -50,7 +50,7 @@ def projectToRelativeCoordinateBasis(r, s, m, M):
     else:
         return projectToRelativeCoordinateBasis_NumpyVersion(r, s, m, M)
 
-def potential(r, s, t, u):
+def potential(magneticLength, r, s, t, u):
     if r + s == t + u:
         sumRange = range(1, r + s + 1, 2)
         P = projectToRelativeCoordinateBasis
